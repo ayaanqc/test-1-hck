@@ -18,6 +18,7 @@ import { derive } from '../lib/engine.js'
 import { computeFlags } from '../lib/flags.js'
 import { categoryLabel, getDept } from '../data/authorities.js'
 import { fmtDate } from '../lib/format.js'
+import Icon from '../components/icons.jsx'
 
 const REVIEWER = 'Oversight reviewer (demo)'
 
@@ -68,13 +69,15 @@ export default function ReviewComplaint() {
   }
 
   return (
-    <Page title={complaint.id} sub={t('review.title')} back={{ to: '/review', label: t('review.queue') }}>
-      <Card className="border-brand-700">
-        <div className="flex flex-wrap items-center gap-2">
-          <StatusPill statusKey={d.statusKey} />
-          <span className="text-sm text-slate-700">{fmtDate(complaint.createdAt, lang)}</span>
-        </div>
-        <dl className="mt-2">
+    <Page
+      eyebrow={t('role.reviewer')}
+      title={complaint.id}
+      sub={`${tt(categoryLabel(complaint.category))} · ${t('office.filed')} ${fmtDate(complaint.createdAt, lang)}`}
+      back={{ to: '/review', label: t('review.queue') }}
+      actions={<StatusPill statusKey={d.statusKey} />}
+    >
+      <Card>
+        <dl>
           <KV label={t('public.deptPage')}>{tt(getDept(complaint.deptId)?.name)}</KV>
           <KV label={t('mine.officeNow')}>{tt(d.officeNow)}</KV>
           <KV label={t('office.category')}>{tt(categoryLabel(complaint.category))}</KV>
@@ -83,16 +86,30 @@ export default function ReviewComplaint() {
         </dl>
       </Card>
 
-      <SectionHeading>{t('review.identity')}</SectionHeading>
-      <Card>
+      <SectionHeading
+        action={<span className="flex items-center gap-1.5 text-xs text-ink-400"><Icon name="lock" size={13} /> {t('role.reviewer')}</span>}
+      >
+        {t('review.identity')}
+      </SectionHeading>
+      <div className="rounded-4xl bg-ink p-5 text-white shadow-ink">
         <dl>
-          <KV label={t('case.identity')}>{complaint.complainant.name}</KV>
-          <KV label={t('review.phone')}>{complaint.complainant.phone}</KV>
-          <KV label={t('review.account')}>
-            {details.accountAgeDays === 0 ? `< 1 ${t('review.days')}` : `${details.accountAgeDays} ${t('review.days')}`}
-          </KV>
+          <div className="flex flex-col gap-0.5 border-b border-white/10 py-2.5 sm:flex-row sm:gap-4">
+            <dt className="text-sm text-white/65 sm:w-2/5">{t('case.identity')}</dt>
+            <dd className="text-base font-medium">{complaint.complainant.name}</dd>
+          </div>
+          <div className="flex flex-col gap-0.5 border-b border-white/10 py-2.5 sm:flex-row sm:gap-4">
+            <dt className="text-sm text-white/65 sm:w-2/5">{t('review.phone')}</dt>
+            <dd className="font-mono text-base">{complaint.complainant.phone}</dd>
+          </div>
+          <div className="flex flex-col gap-0.5 py-2.5 sm:flex-row sm:gap-4">
+            <dt className="text-sm text-white/65 sm:w-2/5">{t('review.account')}</dt>
+            <dd className="text-base">
+              {details.accountAgeDays === 0 ? `< 1 ${t('review.days')}` : `${details.accountAgeDays} ${t('review.days')}`}
+            </dd>
+          </div>
         </dl>
-      </Card>
+        <p className="mt-2 border-t border-white/10 pt-3 text-xs text-white/60">{t('office.noIdentity')}</p>
+      </div>
 
       <SectionHeading>{t('review.witnesses')}</SectionHeading>
       <Card>
@@ -105,25 +122,28 @@ export default function ReviewComplaint() {
             ))}
           </ul>
         ) : (
-          <p className="text-base text-slate-700">{t('review.noWitnesses')}</p>
+          <p className="text-base text-ink-500">{t('review.noWitnesses')}</p>
         )}
       </Card>
 
       <SectionHeading>{t('review.evidence')}</SectionHeading>
-      <p className="mb-2 text-sm text-slate-700">{t('mine.evidenceHidden')}</p>
+      <p className="mb-2 text-sm text-ink-500">{t('mine.evidenceHidden')}</p>
       <EvidenceList complaint={complaint} allowOpen />
 
       <SectionHeading>{t('review.flags')}</SectionHeading>
       <Card>
-        <div className="mb-2 flex flex-wrap items-center gap-2">
+        <div className="mb-3 flex flex-wrap items-center gap-2">
           <DemoBadge />
-          <span className="text-sm text-slate-700">{t('review.aiDemoNote')}</span>
+          <span className="text-xs text-ink-400">{t('review.aiDemoNote')}</span>
         </div>
         {flags.length ? (
           <ul className="space-y-3">
             {flags.map((f) => (
-              <li key={f.id} className="rounded-xl border-2 border-slate-200 p-3">
-                <p className="text-base font-bold">⚑ {t(`flags.${f.id}`)}</p>
+              <li key={f.id} className="rounded-2xl bg-brand-50 p-3.5">
+                <p className="flex items-center gap-2 text-base font-semibold">
+                  <Icon name="flag" size={15} className="text-ink-500" />
+                  {t(`flags.${f.id}`)}
+                </p>
                 <p className="mt-1 text-base">{tt(f.reason)}</p>
               </li>
             ))}
@@ -131,15 +151,15 @@ export default function ReviewComplaint() {
         ) : (
           <p className="text-base">{t('review.noFlags')}</p>
         )}
-        <p className="mt-3 text-sm text-slate-700">{t('review.aiNote')}</p>
+        <p className="mt-3 text-sm text-ink-500">{t('review.aiNote')}</p>
       </Card>
 
-      <SectionHeading>{t('review.redactions')}</SectionHeading>
+      <SectionHeading action={<Icon name="lock" size={16} className="text-ink-400" />}>{t('review.redactions')}</SectionHeading>
       <Card>
         <p className="text-base">{t('review.redactionsHelp')}</p>
         {d.redactionsApprovedAt ? (
           <p className="mt-2 text-base font-semibold text-emerald-900">
-            ✓ {t('review.approved', { date: fmtDate(d.redactionsApprovedAt, lang) })}
+            {t('review.approved', { date: fmtDate(d.redactionsApprovedAt, lang) })}
           </p>
         ) : (
           <div className="mt-2">
@@ -159,9 +179,9 @@ export default function ReviewComplaint() {
           <KV label={t('report.q5')}>{tt(details.who)}</KV>
         </dl>
         {aiFields ? (
-          <div className="mt-3 rounded-xl bg-slate-50 p-3">
+          <div className="mt-3 rounded-2xl bg-brand-50 p-3">
             <div className="mb-1 flex items-center gap-2">
-              <p className="text-base font-bold">{t('review.original')}</p>
+              <p className="text-base font-semibold">{t('review.original')}</p>
               {aiDraft.demo ? <DemoBadge /> : null}
             </div>
             {Object.entries(aiFields)
@@ -174,7 +194,7 @@ export default function ReviewComplaint() {
               ))}
             {details.corrections ? (
               <div className="mt-2 border-t border-slate-300 pt-2">
-                <p className="text-base font-bold">{t('draft.yourVersion')}</p>
+                <p className="text-base font-semibold">{t('draft.yourVersion')}</p>
                 {Object.entries(details.corrections).map(([k, v]) => (
                   <p key={k} className="mt-1 text-base">
                     <span className="font-semibold">{t(`draft.field.${k}`)}: </span>
@@ -193,8 +213,8 @@ export default function ReviewComplaint() {
       <SectionHeading>{t('mine.verify')}</SectionHeading>
       <VerifyButton complaint={complaint} />
 
-      <SectionHeading>{t('review.finding')}</SectionHeading>
-      <p className="mb-2 text-base text-slate-700">{t('review.findingHelp')}</p>
+      <SectionHeading action={<Icon name="shield" size={16} className="text-ink-400" />}>{t('review.finding')}</SectionHeading>
+      <p className="mb-2 text-base text-ink-500">{t('review.findingHelp')}</p>
       <Card>
         <Field label={t('finding.substantiated')} htmlFor="finding">
           <Select id="finding" value={finding} onChange={setFinding}>
@@ -203,7 +223,7 @@ export default function ReviewComplaint() {
             <option value="no_finding_possible">{t('finding.no_finding_possible')}</option>
           </Select>
         </Field>
-        <p className="mb-2 text-sm text-slate-700">{t(`finding.${finding}.def`)}</p>
+        <p className="mb-2 text-sm text-ink-500">{t(`finding.${finding}.def`)}</p>
         <Field label={t('review.reason')} htmlFor="finding-reason" required>
           <TextArea id="finding-reason" value={findingReason} onChange={setFindingReason} />
         </Field>
@@ -217,7 +237,7 @@ export default function ReviewComplaint() {
         </Btn>
       </Card>
 
-      <SectionHeading>{t('review.close')}</SectionHeading>
+      <SectionHeading action={<Icon name="lock" size={16} className="text-ink-400" />}>{t('review.close')}</SectionHeading>
       <Card>
         <Field label={t('review.closeDecision')} htmlFor="decision">
           <Select id="decision" value={decision} onChange={setDecision}>
@@ -258,12 +278,12 @@ export default function ReviewComplaint() {
         </>
       ) : null}
 
-      <SectionHeading>{t('review.restrict')}</SectionHeading>
+      <SectionHeading action={<Icon name="lock" size={16} className="text-ink-400" />}>{t('review.restrict')}</SectionHeading>
       <Card>
         {d.restriction ? (
           <>
             <p className="text-base">{t('review.restrictedAlready')}</p>
-            <p className="mt-1 text-base text-slate-700">{tt(d.restriction.reason)}</p>
+            <p className="mt-1 text-base text-ink-500">{tt(d.restriction.reason)}</p>
             <Field label={t('review.liftReason')} htmlFor="lift-reason">
               <TextArea id="lift-reason" value={liftReason} onChange={setLiftReason} />
             </Field>
@@ -306,10 +326,10 @@ export default function ReviewComplaint() {
             </Btn>
           </>
         )}
-        <p className="mt-2 text-sm text-slate-700">{t('review.publicNote')}</p>
+        <p className="mt-2 text-sm text-ink-500">{t('review.publicNote')}</p>
       </Card>
 
-      <SectionHeading>{t('review.correct')}</SectionHeading>
+      <SectionHeading action={<Icon name="edit" size={16} className="text-ink-400" />}>{t('review.correct')}</SectionHeading>
       <Card>
         <Field label={t('review.correctNarrative')} htmlFor="correction">
           <TextArea id="correction" value={correctionText} onChange={setCorrectionText} />
@@ -332,7 +352,7 @@ export default function ReviewComplaint() {
         >
           {t('review.correct')}
         </Btn>
-        <p className="mt-2 text-sm text-slate-700">{t('event.originalStays')}</p>
+        <p className="mt-2 text-sm text-ink-500">{t('event.originalStays')}</p>
       </Card>
 
       <div className="mt-4" aria-live="polite">

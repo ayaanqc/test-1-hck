@@ -1,8 +1,9 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useI18n } from '../i18n/index.js'
-import { Btn, Card, Checkbox, DemoBadge, Field, Notice, Page, Select, TextArea, TextInput } from '../components/Common.jsx'
+import { Btn, Card, Checkbox, DemoBadge, Field, Notice, Page, RadioCard, Select, TextArea, TextInput } from '../components/Common.jsx'
 import { SpeakButton } from '../components/Actions.jsx'
+import Icon from '../components/icons.jsx'
 import { CATEGORIES, DEPARTMENTS, OFFICES, categoryLabel } from '../data/authorities.js'
 import { CONFIG } from '../data/config.js'
 import { prepareDraft } from '../lib/ai.js'
@@ -49,6 +50,7 @@ export default function Report() {
   const hasDraftStep = !!recording
   const total = hasDraftStep ? 9 : 8
   const fileInput = useRef(null)
+  const verifyStep = hasDraftStep ? 9 : 8
 
   const selectedOffice = OFFICES.find((o) => o.id === officeId)
   const deptOffices = useMemo(() => OFFICES.filter((o) => o.deptId === deptId), [deptId])
@@ -180,10 +182,7 @@ export default function Report() {
     if (!phoneVerified) return setError(t('report.phoneBad'))
     setSubmitting(true)
     try {
-      const field = (key, fallback = '') =>
-        (corrections[key] && corrections[key].trim()) ||
-        (ai && ai.fields && ai.fields[key] ? tt(ai.fields[key]) : '') ||
-        fallback
+      const field = (key, fallback = '') => (corrections[key] && corrections[key].trim()) || (ai && ai.fields && ai.fields[key] ? tt(ai.fields[key]) : '') || fallback
       const finalNarrative = (field('what_happened') || narrative).trim()
       const finalWhen = (field('when') || when).trim()
       const finalWho = `${field('who') || whoDesc}${whoName ? ` — ${whoName}` : ''}`.trim()
@@ -225,74 +224,96 @@ export default function Report() {
     }
   }
 
+  const heading = {
+    1: { title: t('report.q1'), sub: null },
+    2: { title: t('report.q2'), sub: null },
+    3: { title: t('report.q3'), sub: t('report.whereHelp') },
+    4: { title: t('report.q4'), sub: t('report.whenHelp') },
+    5: { title: t('report.q5'), sub: t('report.whoHelp') },
+    6: { title: t('report.q6'), sub: t('report.witnessHelp') },
+    7: { title: t('report.yourStory'), sub: t('report.storyHelp') },
+    8: hasDraftStep ? { title: t('draft.title'), sub: t('draft.editHint') } : { title: t('report.q8'), sub: t('report.summaryHelp') },
+    9: { title: t('report.q8'), sub: t('report.summaryHelp') },
+  }[step] || { title: t('report.title'), sub: null }
+
   return (
-    <Page title={t('report.title')} back={{ to: '/', label: t('nav.home') }}>
-      <div className="mb-4">
-        <div className="flex items-center justify-between text-sm font-semibold text-slate-700">
-          <span>{t('report.stepOf', { n: step, total })}</span>
-          <span className="text-slate-600">{Math.round((step / total) * 100)}%</span>
-        </div>
-        <div className="mt-1 h-3 w-full overflow-hidden rounded-full bg-slate-200" role="progressbar" aria-valuemin={1} aria-valuemax={total} aria-valuenow={step} aria-label={t('report.progress')}>
-          <div className="h-full bg-brand-700" style={{ width: `${(step / total) * 100}%` }} />
-        </div>
+    <Page
+      eyebrow={t('report.stepOf', { n: step, total })}
+      title={heading.title}
+      sub={heading.sub}
+      back={{ to: '/', label: t('nav.home') }}
+      actions={<Btn to="/track" variant="secondary" size="sm" icon="track" full={false}>{t('home.track')}</Btn>}
+    >
+      {/* progress */}
+      <div className="mb-5 flex gap-1.5" role="progressbar" aria-valuemin={1} aria-valuemax={total} aria-valuenow={step} aria-label={t('report.progress')}>
+        {Array.from({ length: total }).map((_, i) => (
+          <span key={i} className={`h-1.5 flex-1 rounded-full ${i < step ? 'bg-ink' : 'bg-line'}`} />
+        ))}
       </div>
 
       {error ? (
-        <div className="mb-3">
+        <div className="mb-4" aria-live="polite">
           <Notice tone="danger">{error}</Notice>
         </div>
       ) : null}
 
       {step === 1 ? (
-        <Card>
-          <h2 className="text-xl font-bold">{t('report.q1')}</h2>
-          <div className="mt-3 space-y-2">
-            {CATEGORIES.map((c) => (
-              <label key={c.id} className={`flex min-h-[48px] cursor-pointer items-center gap-3 rounded-xl border-2 p-3 ${category === c.id ? 'border-brand-700 bg-brand-50' : 'border-slate-300'}`}>
-                <input type="radio" name="category" value={c.id} checked={category === c.id} onChange={() => setCategory(c.id)} className="h-5 w-5" />
-                <span className="text-base font-medium">{tt(c.label)}</span>
-              </label>
-            ))}
-          </div>
-        </Card>
+        <div className="space-y-2.5">
+          {CATEGORIES.map((c) => (
+            <RadioCard
+              key={c.id}
+              id={`cat-${c.id}`}
+              name="category"
+              value={c.id}
+              checked={category === c.id}
+              onChange={() => setCategory(c.id)}
+              title={tt(c.label)}
+            />
+          ))}
+        </div>
       ) : null}
 
       {step === 2 ? (
-        <Card>
-          <h2 className="text-xl font-bold">{t('report.q2')}</h2>
-          <div className="mt-3 space-y-2">
-            {DEPARTMENTS.map((d) => (
-              <label key={d.id} className={`flex min-h-[48px] cursor-pointer items-center gap-3 rounded-xl border-2 p-3 ${deptId === d.id ? 'border-brand-700 bg-brand-50' : 'border-slate-300'}`}>
-                <input type="radio" name="dept" value={d.id} checked={deptId === d.id} onChange={() => { setDeptId(d.id); setOfficeId('') }} className="h-5 w-5" />
-                <span className="text-base font-medium">{tt(d.name)}</span>
-              </label>
-            ))}
-          </div>
-        </Card>
+        <div className="space-y-2.5">
+          {DEPARTMENTS.map((d) => (
+            <RadioCard
+              key={d.id}
+              id={`dept-${d.id}`}
+              name="dept"
+              value={d.id}
+              checked={deptId === d.id}
+              onChange={() => { setDeptId(d.id); setOfficeId('') }}
+              title={tt(d.name)}
+            />
+          ))}
+        </div>
       ) : null}
 
       {step === 3 ? (
         <Card>
-          <h2 className="text-xl font-bold">{t('report.q3')}</h2>
-          <p className="mt-1 text-base text-slate-700">{t('report.whereHelp')}</p>
           <Field label={t('report.searchOffice')} htmlFor="office-search">
             <TextInput id="office-search" value={officeQuery} onChange={setOfficeQuery} type="search" />
           </Field>
-          <div className="space-y-2">
+          <div className="space-y-2.5">
             {filteredOffices.map((o) => (
-              <label key={o.id} className={`flex min-h-[48px] cursor-pointer items-center gap-3 rounded-xl border-2 p-3 ${officeId === o.id ? 'border-brand-700 bg-brand-50' : 'border-slate-300'}`}>
-                <input type="radio" name="office" value={o.id} checked={officeId === o.id} onChange={() => setOfficeId(o.id)} className="h-5 w-5" />
-                <span className="text-base font-medium">{tt(o.name)}</span>
-              </label>
+              <RadioCard
+                key={o.id}
+                id={`office-${o.id}`}
+                name="office"
+                value={o.id}
+                checked={officeId === o.id}
+                onChange={() => setOfficeId(o.id)}
+                title={tt(o.name)}
+                sub={o.district}
+              />
             ))}
-            {!filteredOffices.length ? <p className="text-base">{t('report.noOffice')}</p> : null}
+            {!filteredOffices.length ? <p className="text-base text-ink-500">{t('report.noOffice')}</p> : null}
           </div>
         </Card>
       ) : null}
 
       {step === 4 ? (
         <Card>
-          <h2 className="text-xl font-bold">{t('report.q4')}</h2>
           <Field label={t('report.whenHelp')} htmlFor="when">
             <TextInput id="when" value={when} onChange={setWhen} placeholder={lang === 'hi' ? 'मंगलवार सुबह' : 'Tuesday morning'} />
           </Field>
@@ -302,7 +323,6 @@ export default function Report() {
 
       {step === 5 ? (
         <Card>
-          <h2 className="text-xl font-bold">{t('report.q5')}</h2>
           <Field label={t('report.whoHelp')} htmlFor="who">
             <TextArea id="who" value={whoDesc} onChange={setWhoDesc} />
           </Field>
@@ -317,12 +337,10 @@ export default function Report() {
       ) : null}
 
       {step === 6 ? (
-        <Card>
-          <h2 className="text-xl font-bold">{t('report.q6')}</h2>
-          <p className="mt-1 text-base text-slate-700">{t('report.witnessHelp')}</p>
-          <div className="mt-3 space-y-4">
+        <div className="space-y-3">
+          <div className="space-y-3">
             {witnesses.map((w, i) => (
-              <div key={i} className="rounded-xl border-2 border-slate-200 p-3">
+              <Card key={i}>
                 <Field label={t('report.witnessName')} htmlFor={`wn-${i}`}>
                   <TextInput id={`wn-${i}`} value={w.name} onChange={(v) => updateWitness(i, 'name', v)} />
                 </Field>
@@ -330,115 +348,148 @@ export default function Report() {
                 <Field label={t('report.witnessRelation')} htmlFor={`wr-${i}`}>
                   <TextInput id={`wr-${i}`} value={w.relation} onChange={(v) => updateWitness(i, 'relation', v)} />
                 </Field>
-                <Btn variant="quiet" onClick={() => removeWitness(i)}>
+                <Btn variant="quiet" size="sm" icon="close" full={false} onClick={() => removeWitness(i)}>
                   {t('report.removeWitness')}
                 </Btn>
-              </div>
+              </Card>
             ))}
           </div>
-          <div className="mt-3">
-            <Btn variant="secondary" onClick={addWitness}>
-              + {t('report.addWitness')}
-            </Btn>
-          </div>
-        </Card>
+          <Btn variant="secondary" icon="plus" onClick={addWitness}>
+            {t('report.addWitness')}
+          </Btn>
+          <Notice tone="info">{t('report.witnessHelp')}</Notice>
+        </div>
       ) : null}
 
       {step === 7 ? (
-        <Card>
-          <h2 className="text-xl font-bold">{t('report.yourStory')}</h2>
-          <p className="mt-1 text-base text-slate-700">{t('report.storyHelp')}</p>
-          <Field label={t('report.evidenceHelp')} htmlFor="narrative">
-            <TextArea id="narrative" value={narrative} onChange={setNarrative} rows={5} />
-          </Field>
-          <SpeakButton onText={(text) => setNarrative((n) => (n ? `${n} ${text}` : text))} lang={lang} />
+        <div className="space-y-4">
+          <Card>
+            <Field label={t('report.storyHelp')} htmlFor="narrative">
+              <TextArea id="narrative" value={narrative} onChange={setNarrative} rows={5} />
+            </Field>
+            <SpeakButton onText={(text) => setNarrative((n) => (n ? `${n} ${text}` : text))} lang={lang} />
 
-          <hr className="my-4 border-slate-200" />
-          <h3 className="text-lg font-bold">{t('report.record')}</h3>
-          <p className="text-base text-slate-700">{t('report.recordHelp')}</p>
-          {!isRecording && !recording ? (
-            <div className="mt-2 space-y-2">
-              <Btn variant="secondary" onClick={startRecording}>🎙 {t('report.startRecording')}</Btn>
-              <Btn variant="quiet" onClick={useDemoRecording}>▶ {t('report.demoRecording')}</Btn>
-              <p className="text-sm text-slate-700">{t('report.demoRecordingHint')}</p>
-            </div>
-          ) : null}
-          {isRecording ? (
-            <div className="mt-2">
-              <p aria-live="polite" className="mb-2 text-base font-semibold text-red-800">● {t('report.recording')} {recordingSeconds}s</p>
-              <Btn variant="warning" onClick={stopRecording}>■ {t('report.stopRecording')}</Btn>
-            </div>
-          ) : null}
-          {recording && !isRecording ? (
-            <div className="mt-2">
-              <p className="text-base font-semibold">{t('report.recorded', { n: recordingSeconds })}</p>
-              {recordingUrl ? <audio controls src={recordingUrl} className="mt-2 w-full" aria-label={t('report.record')} /> : null}
-              <div className="mt-2">
-                <Btn variant="quiet" onClick={startRecording}>🎙 {t('report.recode')}</Btn>
+            <div className="mt-5 rounded-3xl bg-brand-50 p-4">
+              <div className="flex items-center gap-2">
+                <Icon name="mic" size={18} className="text-ink-500" />
+                <h3 className="text-base font-semibold">{t('report.record')}</h3>
               </div>
+              <p className="mt-1 text-sm text-ink-500">{t('report.recordHelp')}</p>
+              {!isRecording && !recording ? (
+                <div className="mt-3 space-y-2">
+                  <Btn variant="primary" icon="mic" onClick={startRecording}>
+                    {t('report.startRecording')}
+                  </Btn>
+                  <Btn variant="secondary" icon="play" onClick={useDemoRecording}>
+                    {t('report.demoRecording')}
+                  </Btn>
+                  <p className="text-xs text-ink-400">{t('report.demoRecordingHint')}</p>
+                </div>
+              ) : null}
+              {isRecording ? (
+                <div className="mt-3">
+                  <p aria-live="polite" className="mb-2 flex items-center gap-2 text-base font-semibold text-red-800">
+                    <span className="h-2.5 w-2.5 animate-pulse rounded-full bg-red-700" aria-hidden="true" />
+                    {t('report.recording')} {recordingSeconds}s
+                  </p>
+                  <Btn variant="warning" icon="stop" onClick={stopRecording}>
+                    {t('report.stopRecording')}
+                  </Btn>
+                </div>
+              ) : null}
+              {recording && !isRecording ? (
+                <div className="mt-3">
+                  <p className="text-base font-semibold">{t('report.recorded', { n: recordingSeconds })}</p>
+                  {recordingUrl ? <audio controls src={recordingUrl} className="mt-2 w-full" aria-label={t('report.record')} /> : null}
+                  <div className="mt-2">
+                    <Btn variant="secondary" size="sm" icon="mic" full={false} onClick={startRecording}>
+                      {t('report.recode')}
+                    </Btn>
+                  </div>
+                </div>
+              ) : null}
+              <p className="mt-3 text-xs text-ink-400">{t('report.voiceNote')}</p>
             </div>
-          ) : null}
-          <p className="mt-2 text-sm text-slate-700">{t('report.voiceNote')}</p>
+          </Card>
 
-          <hr className="my-4 border-slate-200" />
-          <h3 className="text-lg font-bold">{t('report.q7')}</h3>
-          <p className="text-base text-slate-700">{t('report.evidenceHelp')}</p>
-          <label htmlFor="evidence-files" className="mt-2 block text-base font-semibold">
-            {t('report.pickFiles')}
-          </label>
-          <input
-            ref={fileInput}
-            id="evidence-files"
-            type="file"
-            multiple
-            accept="image/*,application/pdf,audio/*,video/*"
-            onChange={onFiles}
-            className="mt-2 block w-full rounded-xl border-2 border-slate-400 p-3 text-base"
-          />
-          <p className="mt-1 text-sm text-slate-700">{t('report.evidenceMax', { mb: CONFIG.maxEvidenceMB })}</p>
-          {files.length ? (
-            <ul className="mt-2 space-y-1">
-              {files.map((f) => (
-                <li key={f.clientId} className="flex items-center justify-between gap-2 rounded border border-slate-200 p-2">
-                  <span className="min-w-0 break-all text-base">{f.name}</span>
-                  <button
-                    type="button"
-                    onClick={() => setFiles((prev) => prev.filter((x) => x.clientId !== f.clientId))}
-                    className="min-h-[44px] shrink-0 rounded border-2 border-slate-400 px-3 text-base font-semibold"
-                  >
-                    {t('report.removeFile')}
-                  </button>
-                </li>
-              ))}
-            </ul>
-          ) : null}
-        </Card>
+          <Card>
+            <div className="flex items-center gap-2">
+              <Icon name="file" size={18} className="text-ink-500" />
+              <h3 className="text-base font-semibold">{t('report.q7')}</h3>
+            </div>
+            <p className="mt-1 text-sm text-ink-500">{t('report.evidenceHelp')}</p>
+            <label htmlFor="evidence-files" className="mt-3 mb-1.5 block text-sm font-semibold text-ink-700">
+              {t('report.pickFiles')}
+            </label>
+            <input
+              ref={fileInput}
+              id="evidence-files"
+              type="file"
+              multiple
+              accept="image/*,application/pdf,audio/*,video/*"
+              onChange={onFiles}
+              className="block w-full rounded-2xl border border-dashed border-line-strong bg-brand-50/60 p-4 text-sm file:mr-3 file:rounded-full file:border-0 file:bg-ink file:px-4 file:py-2 file:text-sm file:font-semibold file:text-white"
+            />
+            <p className="mt-2 text-xs text-ink-400">{t('report.evidenceMax', { mb: CONFIG.maxEvidenceMB })}</p>
+            {files.length ? (
+              <ul className="mt-3 space-y-2">
+                {files.map((f) => (
+                  <li key={f.clientId} className="flex items-center justify-between gap-2 rounded-2xl border border-line p-3">
+                    <span className="min-w-0 break-all text-sm">{f.name}</span>
+                    <button
+                      type="button"
+                      onClick={() => setFiles((prev) => prev.filter((x) => x.clientId !== f.clientId))}
+                      className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-line-strong text-ink-500 hover:bg-brand-50"
+                      aria-label={t('report.removeFile')}
+                    >
+                      <Icon name="close" size={16} />
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            ) : null}
+          </Card>
+        </div>
       ) : null}
 
       {step === 8 && hasDraftStep ? (
-        <Card>
+        <div className="space-y-4">
           <div className="flex flex-wrap items-center gap-2">
-            <h2 className="text-xl font-bold">{t('draft.title')}</h2>
             {ai && ai.demo ? <DemoBadge /> : null}
+            <span className="text-sm text-ink-400">{t('draft.aiNeverDecides')}</span>
           </div>
-          <p className="mt-1 text-base text-slate-700">{t('draft.editHint')}</p>
+
           {aiLoading ? (
-            <p role="status" className="py-6 text-base">{t('common.loading')}</p>
+            <Card>
+              <p role="status" className="flex items-center gap-2 text-base text-ink-500">
+                <span className="h-4 w-4 animate-spin rounded-full border-2 border-line-strong border-t-ink" aria-hidden="true" />
+                {t('common.loading')}
+              </p>
+            </Card>
           ) : ai ? (
-            <div className="mt-3 space-y-4">
+            <>
               {ai.demo ? <Notice tone="warn">{t('draft.demoNote')}</Notice> : null}
+
               {ai.transcript ? (
-                <details className="rounded-xl border-2 border-slate-200 p-3">
-                  <summary className="min-h-[44px] cursor-pointer text-base font-semibold">{t('draft.transcript')}</summary>
-                  <div className="mt-2 space-y-1">
-                    {ai.transcript.segments?.map((seg, i) => (
-                      <p key={i} className="text-base text-slate-700">
-                        <span className="font-mono text-sm">{seg.t}</span> {typeof seg === 'string' ? seg : tt(seg)}
-                      </p>
-                    ))}
-                    {!ai.transcript.segments?.length ? <p className="text-base">{typeof ai.transcript.text === 'string' ? ai.transcript.text : tt(ai.transcript.text)}</p> : null}
-                  </div>
-                </details>
+                <Card>
+                  <details>
+                    <summary className="flex min-h-[44px] cursor-pointer items-center gap-2 text-base font-semibold">
+                      <Icon name="mic" size={17} className="text-ink-500" />
+                      {t('draft.transcript')}
+                    </summary>
+                    <div className="mt-3 space-y-1.5 border-t border-line pt-3">
+                      {ai.transcript.segments?.map((seg, i) => (
+                        <p key={i} className="text-sm text-ink-600">
+                          <span className="mr-2 font-mono text-xs text-ink-400">{seg.t}</span>
+                          {typeof seg === 'string' ? seg : tt(seg)}
+                        </p>
+                      ))}
+                      {!ai.transcript.segments?.length ? (
+                        <p className="text-base">{typeof ai.transcript.text === 'string' ? ai.transcript.text : tt(ai.transcript.text)}</p>
+                      ) : null}
+                    </div>
+                  </details>
+                </Card>
               ) : null}
 
               {FIELD_ORDER.map((key) => {
@@ -446,122 +497,141 @@ export default function Report() {
                 if (!field) return null
                 const isEditing = editing === key
                 return (
-                  <div key={key} className="rounded-xl border-2 border-slate-200 p-3">
-                    <h3 className="text-base font-bold">{t(`draft.field.${key}`)}</h3>
-                    <p className="mt-1 whitespace-pre-wrap text-base">{tt(field)}</p>
+                  <Card key={key}>
+                    <div className="flex flex-wrap items-start justify-between gap-2">
+                      <h3 className="label-caps">{t(`draft.field.${key}`)}</h3>
+                      {!isEditing ? (
+                        <button
+                          type="button"
+                          onClick={() => { setEditing(key); setCorrections((c) => ({ ...c, [key]: c[key] ?? tt(field) })) }}
+                          className="inline-flex min-h-[36px] items-center gap-1.5 rounded-full px-3 text-sm font-semibold text-ink-500 hover:bg-brand-50"
+                        >
+                          <Icon name="edit" size={14} />
+                          {t('draft.correct')}
+                        </button>
+                      ) : null}
+                    </div>
+                    <p className="mt-2 whitespace-pre-wrap text-base leading-relaxed text-ink-800">{tt(field)}</p>
                     {field.source && field.source.kind === 'quote' ? (
-                      <p className="mt-2 rounded bg-slate-50 p-2 text-sm text-slate-700">
+                      <p className="mt-3 rounded-2xl bg-brand-50 p-3 text-sm text-ink-500">
+                        <Icon name="mic" size={13} className="mr-1.5 inline align-[-2px]" />
                         {t('draft.fromRecording', { t: field.source.t })}: {tt(field.source.quote ?? field.source.text ?? '')}
                       </p>
                     ) : (
-                      <p className="mt-2 text-sm text-slate-700">{t('draft.notStated')}</p>
+                      <p className="mt-3 text-sm text-ink-400">{t('draft.noQuote')}</p>
                     )}
-                    {corrections[key] ? (
-                      <p className="mt-2 rounded border-l-4 border-brand-600 bg-brand-50 p-2 text-base">
-                        <strong>{t('draft.yourVersion')}:</strong> {corrections[key]}
-                      </p>
+                    {corrections[key] && !isEditing ? (
+                      <div className="mt-3 rounded-2xl border-l-2 border-ink bg-brand-50 p-3">
+                        <p className="label-caps">{t('draft.yourVersion')}</p>
+                        <p className="mt-1 text-base">{corrections[key]}</p>
+                      </div>
                     ) : null}
                     {isEditing ? (
-                      <div className="mt-2">
+                      <div className="mt-3">
                         <Field label={t('draft.yourVersion')} htmlFor={`corr-${key}`}>
                           <TextArea id={`corr-${key}`} value={corrections[key] ?? ''} onChange={(v) => setCorrections((c) => ({ ...c, [key]: v }))} />
                         </Field>
-                        <Btn variant="quiet" onClick={() => setEditing(null)}>{t('common.save')}</Btn>
-                      </div>
-                    ) : (
-                      <div className="mt-2">
-                        <Btn variant="quiet" onClick={() => { setEditing(key); setCorrections((c) => ({ ...c, [key]: c[key] ?? tt(field) })) }}>
-                          ✎ {t('draft.correct')}
+                        <Btn variant="secondary" size="sm" icon="check" full={false} onClick={() => setEditing(null)}>
+                          {t('common.save')}
                         </Btn>
                       </div>
-                    )}
-                  </div>
+                    ) : null}
+                  </Card>
                 )
               })}
-              <Notice tone="info">
-                {t('draft.aiNeverDecides')} {t('draft.keepBoth')}
-              </Notice>
-            </div>
+              <Notice tone="info">{t('draft.keepBoth')}</Notice>
+            </>
           ) : (
             <Notice tone="warn">{t('verify.error')}</Notice>
           )}
-        </Card>
+        </div>
       ) : null}
 
-      {((step === 9 && hasDraftStep) || (step === 8 && !hasDraftStep)) ? (
+      {step === verifyStep && !(step === 8 && hasDraftStep) ? (
         <div className="space-y-4">
           <Card>
-            <h2 className="text-xl font-bold">{t('report.q8')}</h2>
-            <p className="mt-1 text-base text-slate-700">{t('report.summaryHelp')}</p>
-            <dl className="mt-2">
-              <div className="border-b border-slate-200 py-2">
-                <dt className="text-sm font-semibold text-slate-700">{t('report.q1')}</dt>
-                <dd className="text-base">{tt(categoryLabel(category))}</dd>
-              </div>
-              <div className="border-b border-slate-200 py-2">
-                <dt className="text-sm font-semibold text-slate-700">{t('report.q3')}</dt>
-                <dd className="text-base">{tt(selectedOffice?.name)}</dd>
-              </div>
-              <div className="border-b border-slate-200 py-2">
-                <dt className="text-sm font-semibold text-slate-700">{t('report.q4')}</dt>
-                <dd className="text-base">{corrections.when || when || tt(ai?.fields?.when)}</dd>
-              </div>
-              <div className="border-b border-slate-200 py-2">
-                <dt className="text-sm font-semibold text-slate-700">{t('report.yourStory')}</dt>
-                <dd className="whitespace-pre-wrap text-base">{corrections.what_happened || tt(ai?.fields?.what_happened) || narrative}</dd>
-              </div>
-              <div className="py-2">
-                <dt className="text-sm font-semibold text-slate-700">{t('report.q7')}</dt>
-                <dd className="text-base">{t('report.filesChosen', { n: files.length + (recording ? 1 : 0) })}</dd>
-              </div>
+            <dl>
+              {[
+                [t('report.q1'), tt(categoryLabel(category))],
+                [t('report.q3'), tt(selectedOffice?.name)],
+                [t('report.q4'), corrections.when || when || tt(ai?.fields?.when)],
+                [t('report.yourStory'), corrections.what_happened || tt(ai?.fields?.what_happened) || narrative],
+                [t('report.q7'), t('report.filesChosen', { n: files.length + (recording ? 1 : 0) })],
+              ].map(([label, value]) => (
+                <div key={label} className="border-b border-line py-2.5 last:border-0">
+                  <dt className="label-caps">{label}</dt>
+                  <dd className="mt-1 whitespace-pre-wrap text-base text-ink-800">{value || '—'}</dd>
+                </div>
+              ))}
             </dl>
           </Card>
 
           <Card>
-            <h2 className="text-xl font-bold">{t('report.phoneTitle')}</h2>
-            <Field label={t('report.phone')} htmlFor="phone">
-              <TextInput id="phone" type="tel" inputMode="tel" value={phone} onChange={setPhone} placeholder="98XXXXXXXX" autoComplete="tel" />
-            </Field>
+            <h3 className="flex items-center gap-2 text-base font-semibold">
+              <Icon name="phone" size={17} className="text-ink-500" />
+              {t('report.phoneTitle')}
+            </h3>
+            <div className="mt-3">
+              <Field label={t('report.phone')} htmlFor="phone">
+                <TextInput id="phone" type="tel" inputMode="tel" value={phone} onChange={setPhone} placeholder="98XXXXXXXX" autoComplete="tel" />
+              </Field>
+            </div>
             {!otpSent ? (
-              <Btn variant="secondary" onClick={() => setOtpSent(true)}>{t('report.sendOtp')}</Btn>
+              <Btn variant="secondary" size="sm" full={false} onClick={() => setOtpSent(true)}>
+                {t('report.sendOtp')}
+              </Btn>
             ) : null}
             {otpSent && !phoneVerified ? (
               <div className="mt-3">
                 <Notice tone="warn">{t('report.otpShown', { otp: CONFIG.demoOtp })}</Notice>
-                <Field label={t('report.otp')} htmlFor="otp">
-                  <TextInput id="otp" inputMode="numeric" value={otp} onChange={setOtp} />
-                </Field>
-                <Btn variant="secondary" onClick={verifyOtp}>{t('report.verify')}</Btn>
+                <div className="mt-3">
+                  <Field label={t('report.otp')} htmlFor="otp">
+                    <TextInput id="otp" inputMode="numeric" value={otp} onChange={setOtp} />
+                  </Field>
+                </div>
+                <Btn variant="secondary" size="sm" full={false} onClick={verifyOtp}>
+                  {t('report.verify')}
+                </Btn>
               </div>
             ) : null}
-            {phoneVerified ? <Notice tone="safe">{t('report.verified')}</Notice> : null}
+            {phoneVerified ? (
+              <p className="mt-3 flex items-center gap-2 text-sm font-semibold text-emerald-800">
+                <Icon name="check" size={16} /> {t('report.verified')}
+              </p>
+            ) : null}
           </Card>
 
           <Card>
-            <h2 className="text-xl font-bold">{t('report.declarationTitle')}</h2>
             <Checkbox id="declaration" checked={declaration} onChange={setDeclaration} label={t('report.declaration')} />
           </Card>
 
-          <Btn onClick={submit} disabled={submitting}>
-            {submitting ? t('common.loading') : t('report.send')}
-          </Btn>
+          <p className="text-center text-sm text-ink-400">{t('common.demoOnly')}</p>
         </div>
       ) : null}
 
-      <div className="mt-5 flex gap-3">
+      {/* sticky navigation */}
+      <div className="sticky bottom-0 z-20 -mx-2 mt-6 flex gap-2 border-t border-line bg-paper/80 px-2 py-3 backdrop-blur">
         {step > 1 ? (
-          <Btn variant="quiet" onClick={goBack}>{t('common.back')}</Btn>
+          <Btn variant="secondary" icon="arrowLeft" onClick={goBack}>
+            {t('common.back')}
+          </Btn>
         ) : null}
         {step < total && !(step === 8 && hasDraftStep) ? (
-          <Btn onClick={goNext}>
+          <Btn iconRight="arrowRight" onClick={goNext}>
             {step === 7 ? (recording ? t('report.continueDraft') : t('report.continueNoRecording')) : t('common.next')}
           </Btn>
         ) : null}
         {step === 8 && hasDraftStep ? (
-          <Btn onClick={() => setStep(9)} disabled={aiLoading}>{t('draft.continue')}</Btn>
+          <Btn iconRight="arrowRight" onClick={() => setStep(9)} disabled={aiLoading}>
+            {t('draft.continue')}
+          </Btn>
+        ) : null}
+        {step === verifyStep ? (
+          <Btn iconRight="arrowRight" onClick={submit} disabled={submitting}>
+            {submitting ? t('common.loading') : t('report.send')}
+          </Btn>
         ) : null}
       </div>
-      <p className="mt-4 text-sm text-slate-700">{t('common.demoOnly')}</p>
     </Page>
   )
 }

@@ -6,6 +6,7 @@ import { Btn, Card, Field, Notice, Page, SectionHeading, Select, TextArea } from
 import { OFFICES } from '../data/authorities.js'
 import { indicatorBreakdown } from '../lib/accountability.js'
 import { CONFIG } from '../data/config.js'
+import Icon from '../components/icons.jsx'
 
 export default function AccountabilityHow() {
   const { complaints } = useStore()
@@ -18,7 +19,12 @@ export default function AccountabilityHow() {
   const W = CONFIG.indicatorWeights
 
   return (
-    <Page title={t('acc.how')} sub={t('acc.title')} back={{ to: '/accountability', label: t('acc.title') }}>
+    <Page
+      eyebrow={t('acc.title')}
+      title={t('acc.how')}
+      sub={t('acc.formula')}
+      back={{ to: '/accountability', label: t('acc.title') }}
+    >
       <Card>
         <Field label={t('public.officePage')} htmlFor="office-pick">
           <Select id="office-pick" value={officeId} onChange={(v) => setParams({ office: v })}>
@@ -29,23 +35,23 @@ export default function AccountabilityHow() {
         </Field>
         <p className="mt-2 text-base">{t('acc.formula')}</p>
         <p className="mt-1 text-base font-semibold">{t('acc.noEffect')}</p>
-        <p className="mt-2 text-sm text-slate-700">{t('acc.threshold', { n: CONFIG.minClosedComplaintsForIndicator })}</p>
+        <p className="mt-2 text-sm text-ink-500">{t('acc.threshold', { n: CONFIG.minClosedComplaintsForIndicator })}</p>
       </Card>
 
       {stats.enoughData ? (
         <>
           <SectionHeading>{t('acc.score')}</SectionHeading>
           <Card>
-            <p className="text-3xl font-black">
-              {stats.score} <span className="text-base font-semibold text-slate-700">{t('acc.of100')}</span>
+            <p className="text-4xl font-semibold tracking-tight">
+              {stats.score} <span className="text-base font-semibold text-ink-400">{t('acc.of100')}</span>
             </p>
-            <table className="mt-3 w-full text-left text-base">
+            <table className="mt-4 w-full text-left text-sm">
               <caption className="sr-only">{t('acc.formula')}</caption>
               <thead>
                 <tr className="border-b-2 border-slate-300">
-                  <th scope="col" className="py-1 text-sm">{t('acc.parts.ack')}</th>
-                  <th scope="col" className="py-1 text-sm">{t('acc.partScore')}</th>
-                  <th scope="col" className="py-1 text-sm">{t('acc.weight')}</th>
+                  <th scope="col" className="label-caps py-2">{t('acc.parts.ack')}</th>
+                  <th scope="col" className="label-caps py-2">{t('acc.partScore')}</th>
+                  <th scope="col" className="label-caps py-2">{t('acc.weight')}</th>
                 </tr>
               </thead>
               <tbody>
@@ -57,20 +63,20 @@ export default function AccountabilityHow() {
                 ].map(([k, share, weight, label]) => (
                   <tr key={k} className="border-b border-slate-200">
                     <th scope="row" className="py-2 text-left text-sm font-semibold">{label}</th>
-                    <td className="py-2">{Math.round(share * 100)}%</td>
-                    <td className="py-2">{Math.round(weight * 100)}%</td>
+                    <td className="py-2 text-base">{Math.round(share * 100)}%</td>
+                    <td className="py-2 text-base">{Math.round(weight * 100)}%</td>
                   </tr>
                 ))}
               </tbody>
             </table>
-            <p className="mt-2 text-sm text-slate-700">
+            <p className="mt-2 text-sm text-ink-500">
               {t('acc.closedCount', { n: stats.closedCount })} · {stats.counts.ack}/{stats.closedCount} · {stats.counts.resp}/{stats.closedCount} ·{' '}
               {stats.counts.deadline}/{stats.closedCount} · {stats.counts.substantiated}/{stats.closedCount}
             </p>
           </Card>
 
           <SectionHeading>{t('acc.dataTitle')}</SectionHeading>
-          <div className="overflow-x-auto">
+          <div className="overflow-x-auto rounded-3xl border border-line bg-white shadow-card">
             <table className="w-full text-left text-sm">
               <thead>
                 <tr className="border-b-2 border-slate-300">
@@ -85,10 +91,10 @@ export default function AccountabilityHow() {
                 {rows.map((r) => (
                   <tr key={r.id} className="border-b border-slate-200">
                     <th scope="row" className="p-1 text-left font-mono text-xs">{r.id}</th>
-                    <td className="p-1">{r.ackOnTime ? '✓' : '✗'} {r.ackDays != null ? `${r.ackDays.toFixed(0)}d` : ''}</td>
-                    <td className="p-1">{r.respondOnTime ? '✓' : '✗'} {r.respondDays != null ? `${r.respondDays.toFixed(0)}d` : ''}</td>
-                    <td className="p-1">{r.deadlineMet ? '✓' : '✗'}</td>
-                    <td className="p-1">{r.substantiated ? '✓' : '—'}</td>
+                    <td className="p-3 text-sm">{r.ackOnTime ? '✓' : '✗'} {r.ackDays != null ? `${r.ackDays.toFixed(0)}d` : ''}</td>
+                    <td className="p-3 text-sm">{r.respondOnTime ? '✓' : '✗'} {r.respondDays != null ? `${r.respondDays.toFixed(0)}d` : ''}</td>
+                    <td className="p-3 text-sm">{r.deadlineMet ? '✓' : '✗'}</td>
+                    <td className="p-3 text-sm">{r.substantiated ? '✓' : '—'}</td>
                   </tr>
                 ))}
               </tbody>

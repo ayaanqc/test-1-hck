@@ -8,6 +8,7 @@ import { verifyComplaint } from '../lib/store.js'
 import { categoryLabel, getDept } from '../data/authorities.js'
 import { STATUS } from '../data/config.js'
 import { fmtDate, fmtDateTime } from '../lib/format.js'
+import Icon from '../components/icons.jsx'
 
 export default function CaseSummary() {
   const { id } = useParams()
@@ -34,13 +35,23 @@ export default function CaseSummary() {
   const submitted = complaint.events.find((e) => e.type === 'submitted')
 
   return (
-    <Page title={t('case.title')} sub={t('case.subtitle')} back={{ to: `/complaint/${complaint.id}`, label: t('mine.title') }}>
-      <div className="no-print mb-4 space-y-2">
-        <Btn onClick={() => window.print()}>🖨 {t('case.print')}</Btn>
-      </div>
+    <Page
+      eyebrow={t('mine.title')}
+      title={t('case.title')}
+      sub={t('case.subtitle')}
+      back={{ to: `/complaint/${complaint.id}`, label: t('mine.title') }}
+      actions={
+        <Btn className="no-print" full={false} size="sm" icon="print" onClick={() => window.print()}>
+          {t('case.print')}
+        </Btn>
+      }
+    >
+      <div className="no-print mb-4" />
 
       <Card className="print-block">
-        <p className="text-base font-bold">{t('case.complaint')}: {complaint.id}</p>
+        <p className="font-mono text-lg font-semibold">{complaint.id}</p>
+        <p className="mt-1 text-xs text-ink-400">{t('case.complaint')} · {t('case.events', { n: complaint.events.length })}</p>
+        <div className="mt-3 border-t border-line pt-3" />
         <p className="text-base">{t('case.generated', { date: fmtDateTime(new Date().toISOString(), lang) })}</p>
         <p className="mt-2 text-base"><strong>{t('case.identity')}:</strong> {complaint.complainant.name}</p>
         <p className="text-base"><strong>{t('review.phone')}:</strong> {complaint.complainant.phone}</p>
@@ -58,7 +69,7 @@ export default function CaseSummary() {
       <ol className="space-y-2">
         {complaint.events.map((ev) => (
           <li key={ev.seq} className="print-block rounded-lg border border-slate-300 p-2">
-            <p className="text-sm text-slate-700">{fmtDateTime(ev.at, lang)} · #{ev.seq} · {ev.type}</p>
+            <p className="text-sm text-ink-500">{fmtDateTime(ev.at, lang)} · #{ev.seq} · {ev.type}</p>
             <p className="text-base">{ev.by}</p>
             {ev.details?.note && ev.type !== 'update' ? <p className="text-base">{tt(ev.details.note)}</p> : null}
             {ev.details?.reason ? <p className="text-base">{t('common.reason')}: {tt(ev.details.reason)}</p> : null}
@@ -83,14 +94,14 @@ export default function CaseSummary() {
       ) : (
         <p className="text-base">{t('case.noEvidence')}</p>
       )}
-      <p className="mt-1 text-sm text-slate-700">{t('case.fingerprints')}</p>
+      <p className="mt-1 text-sm text-ink-500">{t('case.fingerprints')}</p>
 
       <h2 className="mb-2 mt-5 text-xl font-bold">{t('case.responses')}</h2>
       {responses.length ? (
         <ul className="space-y-2">
           {responses.map((ev) => (
             <li key={ev.seq} className="print-block rounded-lg border border-slate-300 p-2">
-              <p className="text-sm text-slate-700">{fmtDateTime(ev.at, lang)} · {ev.type}</p>
+              <p className="text-sm text-ink-500">{fmtDateTime(ev.at, lang)} · {ev.type}</p>
               <p className="text-base">{tt(ev.details?.note || ev.details?.question)}</p>
             </li>
           ))}
@@ -104,7 +115,7 @@ export default function CaseSummary() {
         <ul className="space-y-2">
           {decisions.map((ev) => (
             <li key={ev.seq} className="print-block rounded-lg border border-slate-300 p-2">
-              <p className="text-sm text-slate-700">{fmtDateTime(ev.at, lang)} · {ev.type}</p>
+              <p className="text-sm text-ink-500">{fmtDateTime(ev.at, lang)} · {ev.type}</p>
               {ev.details?.finding ? <p className="text-base font-semibold">{t(`finding.${ev.details.finding}`)}</p> : null}
               {ev.details?.reason ? <p className="text-base">{t('common.reason')}: {tt(ev.details.reason)}</p> : null}
             </li>
@@ -127,7 +138,7 @@ export default function CaseSummary() {
         )}
       </Card>
 
-      <p className="mt-4 text-sm text-slate-700">{t('case.subtitle')}</p>
+      <p className="mt-4 text-sm text-ink-500">{t('case.subtitle')}</p>
     </Page>
   )
 }

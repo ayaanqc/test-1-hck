@@ -2,10 +2,11 @@ import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useI18n } from '../i18n/index.js'
 import { useStore } from '../lib/useStore.js'
-import { Btn, Card, Field, Notice, Page, SectionHeading, Select, TextInput } from '../components/Common.jsx'
+import { Btn, Card, Chip, Field, Notice, Page, SectionHeading, Select, TextInput } from '../components/Common.jsx'
 import { now, resetDemo, setDemoDate, stepDemoDate, tamperEvent, tamperEvidence } from '../lib/store.js'
 import { fmtDateTime } from '../lib/format.js'
 import { CONFIG } from '../data/config.js'
+import Icon from '../components/icons.jsx'
 
 export default function Admin() {
   const { t, lang } = useI18n()
@@ -24,12 +25,20 @@ export default function Admin() {
   }
 
   return (
-    <Page title={t('admin.title')} sub={t('common.demoOnly')}>
+    <Page
+      eyebrow={t('role.admin')}
+      title={t('admin.title')}
+      sub={t('common.demoOnly')}
+      actions={<Chip tone="neutral" icon="clock">{fmtDateTime(now().toISOString(), lang)}</Chip>}
+    >
       <Card>
-        <h2 className="text-lg font-bold">{t('admin.demoDate')}</h2>
+        <h2 className="flex items-center gap-2 text-lg font-semibold tracking-tight">
+          <span aria-hidden="true" className="flex h-8 w-8 items-center justify-center rounded-full bg-brand-50 text-ink-500"><Icon name="clock" size={16} /></span>
+          {t('admin.demoDate')}
+        </h2>
         <p className="mt-1 text-base">{t('admin.demoDateHelp')}</p>
         <p className="mt-2 text-base font-semibold">{t('admin.now', { date: fmtDateTime(now().toISOString(), lang) })}</p>
-        <p className="text-sm text-slate-700">{t('admin.currentDate')}: {admin.demoDate ? fmtDateTime(admin.demoDate, lang) : t('admin.realDate')}</p>
+        <p className="text-sm text-ink-500">{t('admin.currentDate')}: {admin.demoDate ? fmtDateTime(admin.demoDate, lang) : t('admin.realDate')}</p>
         <div className="mt-3 space-y-2">
           <Btn onClick={() => stepDemoDate(CONFIG.demoDateStepDays)}>+{CONFIG.demoDateStepDays} {t('admin.step')}</Btn>
           <Field label={t('admin.setDate')} htmlFor="demo-date">
@@ -42,7 +51,7 @@ export default function Admin() {
         </div>
       </Card>
 
-      <SectionHeading>{t('admin.tamper')}</SectionHeading>
+      <SectionHeading action={<Icon name="alert" size={16} className="text-ink-400" />}>{t('admin.tamper')}</SectionHeading>
       <Card>
         <p className="text-base">{t('admin.tamperHelp')}</p>
         <Field label={t('admin.chooseComplaint')} htmlFor="tamper-target">
@@ -81,7 +90,7 @@ export default function Admin() {
         ) : null}
         {target ? (
           <p className="mt-2 text-base">
-            <Link to={`/review/${target}`} className="font-semibold text-brand-700 underline">
+            <Link to={`/review/${target}`} className="font-semibold text-ink underline decoration-line-strong underline-offset-4">
               {t('common.viewComplaint')}
             </Link>
           </p>
@@ -96,24 +105,24 @@ export default function Admin() {
         </div>
       </Card>
 
-      <SectionHeading>{t('admin.audit')}</SectionHeading>
+      <SectionHeading action={<Icon name="file" size={16} className="text-ink-400" />}>{t('admin.audit')}</SectionHeading>
       <Card>
-        <p className="text-sm text-slate-700">{t('admin.auditHelp')}</p>
+        <p className="text-sm text-ink-500">{t('admin.auditHelp')}</p>
         {admin.audit.length ? (
           <ol className="mt-2 space-y-2">
             {[...admin.audit].reverse().map((a, i) => (
               <li key={i} className="border-b border-slate-200 pb-2">
-                <p className="text-sm text-slate-700">{fmtDateTime(a.at, lang)}</p>
+                <p className="text-sm text-ink-500">{fmtDateTime(a.at, lang)}</p>
                 <p className="text-base font-semibold">{a.action}</p>
                 <p className="text-base">{a.detail}</p>
-                <p className="text-sm text-slate-700">{t('common.by')}: {a.by}</p>
+                <p className="text-sm text-ink-500">{t('common.by')}: {a.by}</p>
               </li>
             ))}
           </ol>
         ) : (
           <p className="mt-2 text-base">{t('admin.noAudit')}</p>
         )}
-        <p className="mt-3 text-sm text-slate-700">{t('admin.noDelete')}</p>
+        <p className="mt-3 text-sm text-ink-500">{t('admin.noDelete')}</p>
       </Card>
     </Page>
   )

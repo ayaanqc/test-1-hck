@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react'
 import { useI18n } from '../i18n/index.js'
 import { useStore } from '../lib/useStore.js'
-import { Btn, Card, Checkbox, Notice, Page, SectionHeading } from '../components/Common.jsx'
+import { Btn, Card, Checkbox, Notice, Page, RadioCard, SectionHeading } from '../components/Common.jsx'
+import Icon from '../components/icons.jsx'
 import { setSetting } from '../lib/store.js'
 
 const SIZES = [
@@ -36,48 +37,74 @@ export default function Settings() {
   }
 
   return (
-    <Page title={t('settings.title')} back={{ to: '/', label: t('nav.home') }}>
-      <Card>
-        <h2 className="text-lg font-bold">{t('settings.language')}</h2>
-        <div className="mt-2 space-y-2">
-          {[
-            { id: 'en', label: 'English' },
-            { id: 'hi', label: 'हिंदी' },
-          ].map((l) => (
-            <label key={l.id} className={`flex min-h-[48px] cursor-pointer items-center gap-3 rounded-xl border-2 p-3 ${settings.lang === l.id ? 'border-brand-700 bg-brand-50' : 'border-slate-300'}`}>
-              <input type="radio" name="lang" checked={settings.lang === l.id} onChange={() => setSetting('lang', l.id)} className="h-5 w-5" />
-              <span className="text-base font-medium">{l.label}</span>
-            </label>
-          ))}
-        </div>
-      </Card>
+    <Page eyebrow={t('nav.settings')} title={t('settings.title')} back={{ to: '/', label: t('nav.home') }}>
+      <div className="grid gap-4 lg:grid-cols-2">
+        <Card>
+          <h2 className="flex items-center gap-2 text-base font-semibold">
+            <Icon name="globe" size={17} className="text-ink-500" />
+            {t('settings.language')}
+          </h2>
+          <div className="mt-3 space-y-2">
+            {[
+              { id: 'en', label: 'English' },
+              { id: 'hi', label: 'हिंदी' },
+            ].map((l) => (
+              <RadioCard
+                key={l.id}
+                id={`lang-${l.id}`}
+                name="lang"
+                value={l.id}
+                checked={settings.lang === l.id}
+                onChange={() => setSetting('lang', l.id)}
+                title={l.label}
+              />
+            ))}
+          </div>
+        </Card>
 
-      <SectionHeading>{t('settings.textSize')}</SectionHeading>
-      <Card>
-        <div className="space-y-2">
-          {SIZES.map((s) => (
-            <label key={s.id} className={`flex min-h-[48px] cursor-pointer items-center gap-3 rounded-xl border-2 p-3 ${settings.textSize === s.id ? 'border-brand-700 bg-brand-50' : 'border-slate-300'}`}>
-              <input type="radio" name="size" checked={settings.textSize === s.id} onChange={() => setSetting('textSize', s.id)} className="h-5 w-5" />
-              <span className={`font-medium ${s.id === 'sm' ? 'text-base' : s.id === 'md' ? 'text-lg' : 'text-xl'}`}>{t(s.key)}</span>
-            </label>
-          ))}
-        </div>
-      </Card>
+        <Card>
+          <h2 className="flex items-center gap-2 text-base font-semibold">
+            <Icon name="file" size={17} className="text-ink-500" />
+            {t('settings.textSize')}
+          </h2>
+          <div className="mt-3 space-y-2">
+            {SIZES.map((s) => (
+              <RadioCard
+                key={s.id}
+                id={`size-${s.id}`}
+                name="size"
+                value={s.id}
+                checked={settings.textSize === s.id}
+                onChange={() => setSetting('textSize', s.id)}
+                title={<span className={s.id === 'sm' ? 'text-base' : s.id === 'md' ? 'text-lg' : 'text-xl'}>{t(s.key)}</span>}
+              />
+            ))}
+          </div>
+        </Card>
 
-      <SectionHeading>{t('settings.contrast')}</SectionHeading>
-      <Card>
-        <Checkbox id="contrast" checked={settings.contrast} onChange={(v) => setSetting('contrast', v)} label={t('settings.contrast')} />
-      </Card>
+        <Card>
+          <h2 className="flex items-center gap-2 text-base font-semibold">
+            <Icon name="grid" size={17} className="text-ink-500" />
+            {t('settings.contrast')}
+          </h2>
+          <div className="mt-1">
+            <Checkbox id="contrast" checked={settings.contrast} onChange={(v) => setSetting('contrast', v)} label={t('settings.contrast')} />
+          </div>
+        </Card>
 
-      <SectionHeading>{t('settings.readAloud')}</SectionHeading>
-      <Card>
-        <p className="text-base text-slate-700">{t('settings.readAloudHelp')}</p>
-        <div className="mt-2">
-          <Btn variant="secondary" onClick={readAloud}>
-            🔊 {speaking ? t('settings.stopReading') : t('settings.readAloud')}
-          </Btn>
-        </div>
-      </Card>
+        <Card>
+          <h2 className="flex items-center gap-2 text-base font-semibold">
+            <Icon name="mic" size={17} className="text-ink-500" />
+            {t('settings.readAloud')}
+          </h2>
+          <p className="mt-1 text-sm text-ink-500">{t('settings.readAloudHelp')}</p>
+          <div className="mt-3">
+            <Btn variant="secondary" size="sm" full={false} icon="play" onClick={readAloud}>
+              {speaking ? t('settings.stopReading') : t('settings.readAloud')}
+            </Btn>
+          </div>
+        </Card>
+      </div>
 
       <div className="mt-4 space-y-2">
         <Notice tone="info">{t('settings.demoNote')} {t('common.demoOnly')}</Notice>

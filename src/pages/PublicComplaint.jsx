@@ -6,6 +6,7 @@ import Timeline from '../components/Timeline.jsx'
 import { derive } from '../lib/engine.js'
 import { categoryLabel, getDept } from '../data/authorities.js'
 import { fmtDate } from '../lib/format.js'
+import Icon from '../components/icons.jsx'
 
 const RESTRICT_LABELS = {
   court_order: { en: 'Court order', hi: 'न्यायालय का आदेश' },
@@ -30,35 +31,51 @@ export default function PublicComplaint() {
   const d = derive(complaint)
 
   return (
-    <Page title={complaint.id} sub={t('public.recordTitle')} back={{ to: '/record', label: t('nav.public') }}>
+    <Page
+      eyebrow={t('nav.public')}
+      title={t('public.recordTitle')}
+      actions={d.restriction ? null : <StatusPill statusKey={d.statusKey} />}
+    >
+      <p className="-mt-2 mb-4 font-mono text-sm text-ink-500">{complaint.id}</p>
       {d.restriction ? (
-        <Notice tone="warn">
-          {t('public.restricted', {
-            date: fmtDate(d.restriction.at, lang),
-            reason: tt(RESTRICT_LABELS[d.restriction.reasonCategory] || RESTRICT_LABELS.other),
-          })}
-          <span className="mt-2 block text-sm">{t('public.noShow')}</span>
-        </Notice>
-      ) : (
-        <>
-          <Card>
-            <div className="flex flex-wrap items-center gap-2">
-              <StatusPill statusKey={d.statusKey} />
+        <Card className="border-amber-200 bg-amber-50/60">
+          <div className="flex items-start gap-3">
+            <span aria-hidden="true" className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-amber-100 text-amber-900">
+              <Icon name="lock" size={18} />
+            </span>
+            <div className="min-w-0">
+              <p className="text-base font-semibold text-amber-950">
+                {t('public.restricted', {
+                  date: fmtDate(d.restriction.at, lang),
+                  reason: tt(RESTRICT_LABELS[d.restriction.reasonCategory] || RESTRICT_LABELS.other),
+                })}
+              </p>
+              <p className="mt-1 text-sm text-amber-900/80">{t('public.noShow')}</p>
             </div>
-            <dl className="mt-2">
+          </div>
+        </Card>
+      ) : (
+        <div className="grid gap-5 lg:grid-cols-[1fr_1.5fr]">
+          <Card className="h-fit">
+            <dl>
               <KV label={t('public.deptPage')}>{tt(getDept(complaint.deptId)?.name)}</KV>
               <KV label={t('public.officePage')}>{tt(d.officeNow)}</KV>
               <KV label={t('office.category')}>{tt(categoryLabel(complaint.category))}</KV>
               <KV label={t('mine.filed')}>{fmtDate(complaint.createdAt, lang)}</KV>
             </dl>
-            <p className="mt-2 text-sm text-slate-700">{t('public.intro')}</p>
+            <p className="mt-3 flex items-start gap-2 border-t border-line pt-3 text-xs text-ink-400">
+              <Icon name="lock" size={14} className="mt-0.5 shrink-0" />
+              {t('public.intro')}
+            </p>
           </Card>
 
-          <SectionHeading>{t('public.timeline')}</SectionHeading>
-          <Timeline complaint={complaint} derived={null} mode="public" showUpcoming={false} />
-        </>
+          <div className="min-w-0">
+            <SectionHeading>{t('public.timeline')}</SectionHeading>
+            <Timeline complaint={complaint} derived={null} mode="public" showUpcoming={false} />
+          </div>
+        </div>
       )}
-      <p className="mt-6 text-sm text-slate-700">{t('public.allegations')}</p>
+      <p className="mt-6 text-sm text-ink-500">{t('public.allegations')}</p>
     </Page>
   )
 }

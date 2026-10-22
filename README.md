@@ -106,13 +106,25 @@ src/i18n/           en.js, hi.js — every piece of interface text, including le
 src/lib/            store.js (append-only events, actions, BroadcastChannel), hash.js (SHA-256 chain),
                     engine.js (derived state + escalation plans), accountability.js, flags.js,
                     db.js (IndexedDB evidence), ai.js, format.js, useStore.js
-src/components/     Layout (with the 112 line on every page), Timeline, Verify/Evidence/Speak, Common
+src/components/     Layout (left sidebar, mobile drawer, the 112 line on every page), icons (inline SVG set),
+                    Timeline, Verify/Evidence/Speak, Common
 src/pages/          every screen (home, report, draft, submitted, track, my complaint, office inbox,
                     office complaint, review list, review complaint, legal, next steps, public record,
                     public complaint, office/department pages, accountability + how, admin, settings,
                     case summary)
 api/ai.js           the only place a provider key is read
 ```
+
+### The look
+
+The interface borrows the calm dashboard style of the reference: a warm-grey page with soft radial
+gradients, frosted white `rounded-4xl` cards with low-contrast shadows, one or two solid dark-ink cards
+per screen for emphasis, rounded-full buttons, thin letter-spaced eyebrow labels and line icons (no
+emoji). Every destination lives in a persistent left sidebar grouped as **Casework** (Home, Report,
+Track), **Support** (Legal help, Public record) and **Oversight** (Office inbox, Review, Admin), with
+the demo role switcher and Settings pinned at the bottom. Below `lg` the same rail becomes a drawer
+behind a hamburger. Palette and radii are in `tailwind.config.js`; base surfaces, focus rings, the
+high-contrast mode and print styles are in `src/index.css`.
 
 ### The record nobody can rewrite
 

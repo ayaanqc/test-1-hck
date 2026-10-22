@@ -11,6 +11,13 @@ export function fmtDate(iso, lang = 'en', withTime = false) {
   return d.toLocaleDateString(locale, opts)
 }
 
+export function fmtShortDate(iso, lang = 'en') {
+  if (!iso) return '—'
+  const d = new Date(iso)
+  if (Number.isNaN(d.getTime())) return '—'
+  return d.toLocaleDateString(lang === 'hi' ? 'hi-IN' : 'en-IN', { day: 'numeric', month: 'short' })
+}
+
 export function fmtDateTime(iso, lang) {
   return fmtDate(iso, lang, true)
 }

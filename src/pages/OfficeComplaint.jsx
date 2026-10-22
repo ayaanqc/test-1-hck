@@ -13,6 +13,7 @@ import {
   startInvestigation,
 } from '../lib/store.js'
 import { derive } from '../lib/engine.js'
+import Icon from '../components/icons.jsx'
 import { CONFIG } from '../data/config.js'
 import { OFFICES, categoryLabel, chainFor, getDept } from '../data/authorities.js'
 import { fmtDate } from '../lib/format.js'
@@ -58,21 +59,26 @@ export default function OfficeComplaint() {
   }
 
   return (
-    <Page title={complaint.id} back={{ to: '/office', label: t('office.back') }}>
-      <Card className="border-brand-700">
-        <div className="flex flex-wrap items-center gap-2">
-          <StatusPill statusKey={d.statusKey} />
-          <span className="text-sm text-slate-700">{t('office.filed')}: {fmtDate(complaint.createdAt, lang)}</span>
-        </div>
-        <dl className="mt-2">
+    <Page
+      eyebrow={t('role.official')}
+      title={complaint.id}
+      sub={`${tt(categoryLabel(complaint.category))} · ${t('office.filed')} ${fmtDate(complaint.createdAt, lang)}`}
+      back={{ to: '/office', label: t('office.back') }}
+      actions={<StatusPill statusKey={d.statusKey} />}
+    >
+      <Card>
+        <dl>
           <KV label={t('public.deptPage')}>{tt(getDept(complaint.deptId)?.name)}</KV>
-          <KV label={t('office.currentOffice')} >{tt(d.officeNow)}</KV>
+          <KV label={t('mine.officeNow')}>{tt(d.officeNow)}</KV>
           <KV label={t('office.category')}>{tt(categoryLabel(complaint.category))}</KV>
           <KV label={t('office.deadline')}>
             {d.escalationAt && !d.isClosed ? fmtDate(d.escalationAt, lang, true) : t('timeline.nothingScheduled')}
           </KV>
         </dl>
-        <p className="mt-2 text-sm text-slate-700">{t('office.submittedBy')}</p>
+        <p className="mt-3 flex items-start gap-2 border-t border-line pt-3 text-xs text-ink-400">
+          <Icon name="lock" size={14} className="mt-0.5 shrink-0" />
+          {t('office.submittedBy')}
+        </p>
       </Card>
 
       <div className="mt-3">
@@ -104,16 +110,19 @@ export default function OfficeComplaint() {
       ) : null}
 
       <SectionHeading>{t('office.actions')}</SectionHeading>
-      <p className="mb-2 text-sm text-slate-700">{t('office.recordKept')}</p>
+      <p className="mb-2 text-sm text-ink-500">{t('office.recordKept')}</p>
       {ackMsg ? <Notice tone="safe">{ackMsg}</Notice> : null}
       {error ? <Notice tone="danger">{error}</Notice> : null}
       {d.isClosed ? <Notice tone="warn">{t('office.closedNotice')}</Notice> : null}
 
-      <div className="space-y-3">
+      <div className="grid gap-3 lg:grid-cols-2">
         <Card>
-          <h3 className="text-base font-bold">{t('office.ack')}</h3>
+          <h3 className="flex items-center gap-2 text-base font-semibold">
+            <span aria-hidden="true" className="flex h-8 w-8 items-center justify-center rounded-full bg-brand-50 text-ink-500"><Icon name="check" size={15} /></span>
+            {t('office.ack')}
+          </h3>
           {d.ackedAt ? (
-            <p className="mt-1 text-base text-slate-700">{t('office.ackDone', { date: fmtDate(d.ackedAt, lang) })}</p>
+            <p className="mt-1 text-base text-ink-500">{t('office.ackDone', { date: fmtDate(d.ackedAt, lang) })}</p>
           ) : (
             <div className="mt-2">
               <Btn disabled={!canAct} onClick={() => run(() => acknowledge(complaint.id, official))}>
@@ -124,8 +133,11 @@ export default function OfficeComplaint() {
         </Card>
 
         <Card>
-          <h3 className="text-base font-bold">{t('office.startInvestigation')}</h3>
-          <p className="mt-1 text-base text-slate-700">{t('office.updateHelp', { days: CONFIG.updateIntervalDays })}</p>
+          <h3 className="flex items-center gap-2 text-base font-semibold">
+            <span aria-hidden="true" className="flex h-8 w-8 items-center justify-center rounded-full bg-brand-50 text-ink-500"><Icon name="clock" size={15} /></span>
+            {t('office.startInvestigation')}
+          </h3>
+          <p className="mt-1 text-base text-ink-500">{t('office.updateHelp', { days: CONFIG.updateIntervalDays })}</p>
           <Field label={t('office.expectedDate')} htmlFor="expected-date">
             <TextInput id="expected-date" type="date" value={expectedDate} onChange={setExpectedDate} />
           </Field>
@@ -141,7 +153,10 @@ export default function OfficeComplaint() {
         </Card>
 
         <Card>
-          <h3 className="text-base font-bold">{t('office.update')}</h3>
+          <h3 className="flex items-center gap-2 text-base font-semibold">
+            <span aria-hidden="true" className="flex h-8 w-8 items-center justify-center rounded-full bg-brand-50 text-ink-500"><Icon name="edit" size={15} /></span>
+            {t('office.update')}
+          </h3>
           <Field label={t('office.updateLabel')} htmlFor="update-note">
             <TextArea id="update-note" value={updateNote} onChange={setUpdateNote} />
           </Field>
@@ -157,7 +172,10 @@ export default function OfficeComplaint() {
         </Card>
 
         <Card>
-          <h3 className="text-base font-bold">{t('office.requestInfo')}</h3>
+          <h3 className="flex items-center gap-2 text-base font-semibold">
+            <span aria-hidden="true" className="flex h-8 w-8 items-center justify-center rounded-full bg-brand-50 text-ink-500"><Icon name="info" size={15} /></span>
+            {t('office.requestInfo')}
+          </h3>
           <Field label={t('office.question')} htmlFor="question">
             <TextArea id="question" value={question} onChange={setQuestion} />
           </Field>
@@ -173,7 +191,10 @@ export default function OfficeComplaint() {
         </Card>
 
         <Card>
-          <h3 className="text-base font-bold">{t('office.respond')}</h3>
+          <h3 className="flex items-center gap-2 text-base font-semibold">
+            <span aria-hidden="true" className="flex h-8 w-8 items-center justify-center rounded-full bg-brand-50 text-ink-500"><Icon name="inbox" size={15} /></span>
+            {t('office.respond')}
+          </h3>
           <Field label={t('office.responseLabel')} htmlFor="response">
             <TextArea id="response" value={response} onChange={setResponse} />
           </Field>
@@ -189,8 +210,11 @@ export default function OfficeComplaint() {
         </Card>
 
         <Card>
-          <h3 className="text-base font-bold">{t('office.dispute')}</h3>
-          <p className="mt-1 text-base text-slate-700">{t('office.disputeHelp')}</p>
+          <h3 className="flex items-center gap-2 text-base font-semibold">
+            <span aria-hidden="true" className="flex h-8 w-8 items-center justify-center rounded-full bg-brand-50 text-ink-500"><Icon name="flag" size={15} /></span>
+            {t('office.dispute')}
+          </h3>
+          <p className="mt-1 text-base text-ink-500">{t('office.disputeHelp')}</p>
           <Field label={t('office.responseLabel')} htmlFor="dispute">
             <TextArea id="dispute" value={dispute} onChange={setDispute} />
           </Field>
@@ -207,7 +231,10 @@ export default function OfficeComplaint() {
         </Card>
 
         <Card>
-          <h3 className="text-base font-bold">{t('office.transfer')}</h3>
+          <h3 className="flex items-center gap-2 text-base font-semibold">
+            <span aria-hidden="true" className="flex h-8 w-8 items-center justify-center rounded-full bg-brand-50 text-ink-500"><Icon name="arrowRight" size={15} /></span>
+            {t('office.transfer')}
+          </h3>
           <Field label={t('office.transferTo')} htmlFor="transfer-to">
             <Select id="transfer-to" value={transferTo} onChange={setTransferTo}>
               <option value="">—</option>
@@ -245,8 +272,8 @@ export default function OfficeComplaint() {
         </Card>
       </div>
 
-      <p className="mt-6 text-sm text-slate-700">{t('office.recordKept')}</p>
-      <p className="mt-1 text-sm text-slate-700">
+      <p className="mt-6 text-xs text-ink-400">{t('office.recordKept')}</p>
+      <p className="mt-1 text-xs text-ink-400">
         {t('timeline.title')}: {levels.map((l) => tt(l.office)).join(' › ')}
       </p>
     </Page>
