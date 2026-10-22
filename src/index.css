@@ -1,0 +1,79 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: light;
+}
+
+html {
+  font-size: 16px;
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  @apply bg-sand text-ink antialiased;
+  font-family: system-ui, -apple-system, 'Segoe UI', Roboto, 'Noto Sans', 'Noto Sans Devanagari', sans-serif;
+  line-height: 1.55;
+}
+
+*:focus-visible {
+  outline: 3px solid #0b5cad;
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* High contrast mode: stronger borders, darker text, no pale greys */
+html.hc body {
+  background: #ffffff;
+  color: #000000;
+}
+html.hc .card,
+html.hc .pill,
+html.hc .btn,
+html.hc input,
+html.hc select,
+html.hc textarea {
+  border-color: #000000 !important;
+}
+html.hc .text-slate-600,
+html.hc .text-slate-500,
+html.hc .text-slate-700 {
+  color: #111111 !important;
+}
+html.hc .bg-brand-50,
+html.hc .bg-brand-100,
+html.hc .bg-amber-50,
+html.hc .bg-emerald-50,
+html.hc .bg-red-50,
+html.hc .bg-slate-50 {
+  background: #ffffff !important;
+}
+html.hc *:focus-visible {
+  outline: 3px solid #000000;
+}
+
+@media print {
+  .no-print {
+    display: none !important;
+  }
+  body {
+    background: #fff;
+    color: #000;
+    font-size: 12pt;
+  }
+  .print-block {
+    break-inside: avoid;
+  }
+  a {
+    color: #000;
+    text-decoration: underline;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation: none !important;
+    transition: none !important;
+  }
+}

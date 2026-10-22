@@ -1,0 +1,29 @@
+{
+  "name": "jawabdehi",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite --host 0.0.0.0",
+    "build": "vite build",
+    "preview": "vite preview --host 0.0.0.0",
+    "smoke": "node scripts/smoke.mjs",
+    "smoke:ui": "esbuild scripts/ui-smoke.mjs --bundle --platform=node --format=esm --outfile=.smoke/ui-smoke.mjs --loader:.js=jsx --loader:.jsx=jsx --jsx=automatic --external:jsdom --external:fake-indexeddb --log-level=warning && node .smoke/ui-smoke.mjs",
+    "smoke:journey": "esbuild scripts/ui-journey.mjs --bundle --platform=node --format=esm --outfile=.smoke/ui-journey.mjs --loader:.js=jsx --loader:.jsx=jsx --jsx=automatic --external:jsdom --external:fake-indexeddb --log-level=warning && node .smoke/ui-journey.mjs"
+  },
+  "dependencies": {
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "react-router-dom": "^7.0.0"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-react": "^4.3.4",
+    "autoprefixer": "^10.4.20",
+    "esbuild": "^0.28.2",
+    "fake-indexeddb": "^6.2.6",
+    "jsdom": "^30.1.3",
+    "postcss": "^8.4.49",
+    "tailwindcss": "^3.4.17",
+    "vite": "^6.0.0"
+  }
+}
