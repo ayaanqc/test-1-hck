@@ -9,7 +9,8 @@
     "preview": "vite preview --host 0.0.0.0",
     "smoke": "node scripts/smoke.mjs",
     "smoke:ui": "esbuild scripts/ui-smoke.mjs --bundle --platform=node --format=esm --outfile=.smoke/ui-smoke.mjs --loader:.js=jsx --loader:.jsx=jsx --jsx=automatic --external:jsdom --external:fake-indexeddb --log-level=warning && node .smoke/ui-smoke.mjs",
-    "smoke:journey": "esbuild scripts/ui-journey.mjs --bundle --platform=node --format=esm --outfile=.smoke/ui-journey.mjs --loader:.js=jsx --loader:.jsx=jsx --jsx=automatic --external:jsdom --external:fake-indexeddb --log-level=warning && node .smoke/ui-journey.mjs"
+    "smoke:journey": "esbuild scripts/ui-journey.mjs --bundle --platform=node --format=esm --outfile=.smoke/ui-journey.mjs --loader:.js=jsx --loader:.jsx=jsx --jsx=automatic --external:jsdom --external:fake-indexeddb --log-level=warning && node .smoke/ui-journey.mjs",
+    "start": "vite build && vite preview --host 0.0.0.0"
   },
   "dependencies": {
     "react": "^19.0.0",

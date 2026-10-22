@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { BrowserRouter, Routes, Route, useLocation, Link } from 'react-router-dom'
 import Layout from './components/Layout.jsx'
+import ErrorBoundary from './components/ErrorBoundary.jsx'
 import { useStore } from './lib/useStore.js'
 import { init, retryInit } from './lib/store.js'
 import Home from './pages/Home.jsx'
@@ -89,19 +90,19 @@ function Shell() {
       <div className="mx-auto max-w-xl p-6">
         <h1 className="text-xl font-bold">{t('app.initFailed')}</h1>
         <p className="mt-2 text-base">{t('app.slowStart')}</p>
-        <p className="mt-2 break-all text-sm text-slate-700">{String(initError)}</p>
+        <p className="mt-2 break-all text-sm text-ink-600">{String(initError)}</p>
         <div className="mt-4 flex flex-wrap gap-3">
           <button
             type="button"
             onClick={() => retryInit()}
-            className="inline-flex min-h-[48px] items-center rounded-xl border-2 border-brand-700 bg-brand-700 px-4 py-2 text-base font-semibold text-white"
+            className="inline-flex min-h-[48px] items-center rounded-xl border-2 border-brand-700 text-white"
           >
             {t('app.retry')}
           </button>
           <button
             type="button"
             onClick={() => window.location.reload()}
-            className="inline-flex min-h-[48px] items-center rounded-xl border-2 border-slate-400 px-4 py-2 text-base font-semibold"
+            className="inline-flex min-h-[48px] items-center rounded-full border border-line-strong px-4 py-2 text-base font-semibold"
           >
             {t('app.retry')}
           </button>
@@ -145,8 +146,12 @@ function Shell() {
 
 export default function App() {
   return (
-    <BrowserRouter>
-      <Shell />
-    </BrowserRouter>
+    <ErrorBoundary>
+      <BrowserRouter>
+        <ErrorBoundary>
+          <Shell />
+        </ErrorBoundary>
+      </BrowserRouter>
+    </ErrorBoundary>
   )
 }

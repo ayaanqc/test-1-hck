@@ -193,7 +193,7 @@ export default function ReviewComplaint() {
                 </p>
               ))}
             {details.corrections ? (
-              <div className="mt-2 border-t border-slate-300 pt-2">
+              <div className="mt-2 border-t border-line-strong pt-2">
                 <p className="text-base font-semibold">{t('draft.yourVersion')}</p>
                 {Object.entries(details.corrections).map(([k, v]) => (
                   <p key={k} className="mt-1 text-base">

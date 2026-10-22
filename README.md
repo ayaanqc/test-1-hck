@@ -25,9 +25,15 @@ Open the printed URL (http://localhost:5173). Node 18+ is needed, and the page m
 localhost or over HTTPS, because the hash chain uses the browser's Web Crypto (`crypto.subtle`).
 
 ```bash
+npm start         # build, then serve the production build (use this if `npm run dev` shows a blank page)
 npm run build     # production build into dist/
-npm run preview   # serve the build
+npm run preview   # serve an existing build
 ```
+
+If a preview window stays white, it is almost always the dev server's hot-reload preamble being
+blocked by the preview iframe. `npm start` serves the built app instead, which needs no hot reload;
+`index.html` also has a plain-text "Opening the demo…" fallback that only disappears once React has
+mounted, and an error boundary turns any crash into a readable message instead of a blank page.
 
 ### AI (optional)
 

@@ -48,7 +48,7 @@ export default function AccountabilityHow() {
             <table className="mt-4 w-full text-left text-sm">
               <caption className="sr-only">{t('acc.formula')}</caption>
               <thead>
-                <tr className="border-b-2 border-slate-300">
+                <tr className="border-b-2 border-line-strong">
                   <th scope="col" className="label-caps py-2">{t('acc.parts.ack')}</th>
                   <th scope="col" className="label-caps py-2">{t('acc.partScore')}</th>
                   <th scope="col" className="label-caps py-2">{t('acc.weight')}</th>
@@ -61,7 +61,7 @@ export default function AccountabilityHow() {
                   ['deadline', stats.parts.deadlineShare, W.deadlines, t('acc.parts.deadline', { days: CONFIG.resolveDays })],
                   ['finding', stats.parts.findingShare, W.findings, t('acc.parts.finding')],
                 ].map(([k, share, weight, label]) => (
-                  <tr key={k} className="border-b border-slate-200">
+                  <tr key={k} className="border-b border-line">
                     <th scope="row" className="py-2 text-left text-sm font-semibold">{label}</th>
                     <td className="py-2 text-base">{Math.round(share * 100)}%</td>
                     <td className="py-2 text-base">{Math.round(weight * 100)}%</td>
@@ -79,7 +79,7 @@ export default function AccountabilityHow() {
           <div className="overflow-x-auto rounded-3xl border border-line bg-white shadow-card">
             <table className="w-full text-left text-sm">
               <thead>
-                <tr className="border-b-2 border-slate-300">
+                <tr className="border-b-2 border-line-strong">
                   <th scope="col" className="p-1">{t('acc.row')}</th>
                   <th scope="col" className="p-1">{t('acc.ack')}</th>
                   <th scope="col" className="p-1">{t('acc.respond')}</th>
@@ -89,12 +89,12 @@ export default function AccountabilityHow() {
               </thead>
               <tbody>
                 {rows.map((r) => (
-                  <tr key={r.id} className="border-b border-slate-200">
+                  <tr key={r.id} className="border-b border-line">
                     <th scope="row" className="p-1 text-left font-mono text-xs">{r.id}</th>
-                    <td className="p-3 text-sm">{r.ackOnTime ? '✓' : '✗'} {r.ackDays != null ? `${r.ackDays.toFixed(0)}d` : ''}</td>
-                    <td className="p-3 text-sm">{r.respondOnTime ? '✓' : '✗'} {r.respondDays != null ? `${r.respondDays.toFixed(0)}d` : ''}</td>
-                    <td className="p-3 text-sm">{r.deadlineMet ? '✓' : '✗'}</td>
-                    <td className="p-3 text-sm">{r.substantiated ? '✓' : '—'}</td>
+                    <td className="p-3 text-sm">{r.ackOnTime ? 'Yes' : 'No'} {r.ackDays != null ? `${r.ackDays.toFixed(0)}d` : ''}</td>
+                    <td className="p-3 text-sm">{r.respondOnTime ? 'Yes' : 'No'} {r.respondDays != null ? `${r.respondDays.toFixed(0)}d` : ''}</td>
+                    <td className="p-3 text-sm">{r.deadlineMet ? 'Yes' : 'No'}</td>
+                    <td className="p-3 text-sm">{r.substantiated ? 'Yes' : '—'}</td>
                   </tr>
                 ))}
               </tbody>

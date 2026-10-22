@@ -182,7 +182,7 @@ export default function Layout({ children }) {
       </a>
 
       {/* Safety strip: every page, every screen size */}
-      <div className="no-print bg-red-800 px-4 py-2 text-white lg:hidden">
+      <div className="no-print bg-red-800 px-4 py-2 text-white md:hidden">
         <p className="mx-auto flex max-w-xl items-center justify-between gap-3 text-sm font-semibold">
           <span className="flex items-center gap-2">
             <Icon name="phone" size={15} />
@@ -196,7 +196,7 @@ export default function Layout({ children }) {
 
       <div className="mx-auto flex w-full max-w-[1500px] gap-6 p-3 sm:p-4 lg:p-6">
         {/* Desktop sidebar */}
-        <aside className="no-print sticky top-6 hidden h-[calc(100vh-3rem)] w-[272px] shrink-0 rounded-[32px] border border-white/70 bg-white/70 p-4 shadow-card backdrop-blur-xl lg:flex lg:flex-col">
+        <aside className="no-print sticky top-6 hidden h-[calc(100vh-3rem)] w-[248px] shrink-0 rounded-[32px] border border-white/70 bg-white/70 p-4 shadow-card backdrop-blur-xl md:flex md:flex-col xl:w-[272px] overflow-y-auto thin-scroll">
           <SidebarContent />
         </aside>
 
@@ -208,12 +208,12 @@ export default function Layout({ children }) {
               onClick={() => setOpen(true)}
               aria-label={t('nav.menu')}
               aria-expanded={open}
-              className="inline-flex h-12 w-12 items-center justify-center rounded-full border border-line bg-white text-ink lg:hidden"
+              className="inline-flex h-12 w-12 items-center justify-center rounded-full border border-line bg-white text-ink md:hidden"
             >
               <Icon name="menu" size={20} />
             </button>
 
-            <Link to="/" className="flex min-w-0 items-center gap-2 lg:hidden">
+            <Link to="/" className="flex min-w-0 items-center gap-2 md:hidden">
               <span aria-hidden="true" className="flex h-10 w-10 items-center justify-center rounded-2xl bg-ink text-base font-bold text-white">
                 ज
               </span>
@@ -266,7 +266,7 @@ export default function Layout({ children }) {
 
       {/* Mobile drawer */}
       {open ? (
-        <div className="no-print fixed inset-0 z-50 lg:hidden">
+        <div className="no-print fixed inset-0 z-50 md:hidden">
           <button
             type="button"
             aria-label={t('common.close')}

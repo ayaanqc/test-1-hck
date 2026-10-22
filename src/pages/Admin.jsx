@@ -111,7 +111,7 @@ export default function Admin() {
         {admin.audit.length ? (
           <ol className="mt-2 space-y-2">
             {[...admin.audit].reverse().map((a, i) => (
-              <li key={i} className="border-b border-slate-200 pb-2">
+              <li key={i} className="border-b border-line pb-2">
                 <p className="text-sm text-ink-500">{fmtDateTime(a.at, lang)}</p>
                 <p className="text-base font-semibold">{a.action}</p>
                 <p className="text-base">{a.detail}</p>

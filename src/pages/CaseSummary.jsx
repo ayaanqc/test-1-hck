@@ -68,7 +68,7 @@ export default function CaseSummary() {
       <h2 className="mb-2 mt-5 text-xl font-bold">{t('case.timeline')}</h2>
       <ol className="space-y-2">
         {complaint.events.map((ev) => (
-          <li key={ev.seq} className="print-block rounded-lg border border-slate-300 p-2">
+          <li key={ev.seq} className="print-block rounded-lg border border-line p-2">
             <p className="text-sm text-ink-500">{fmtDateTime(ev.at, lang)} · #{ev.seq} · {ev.type}</p>
             <p className="text-base">{ev.by}</p>
             {ev.details?.note && ev.type !== 'update' ? <p className="text-base">{tt(ev.details.note)}</p> : null}
@@ -84,7 +84,7 @@ export default function CaseSummary() {
       {evidence.length ? (
         <ul className="space-y-2">
           {evidence.map((ev) => (
-            <li key={ev.seq} className="print-block rounded-lg border border-slate-300 p-2">
+            <li key={ev.seq} className="print-block rounded-lg border border-line p-2">
               <p className="text-base font-semibold">{ev.details.name}</p>
               <p className="break-all text-sm">SHA-256: {ev.details.fingerprint}</p>
               <p className="text-sm">{t('review.changed')}: {fmtDateTime(ev.details.lastModified, lang)}</p>
@@ -100,7 +100,7 @@ export default function CaseSummary() {
       {responses.length ? (
         <ul className="space-y-2">
           {responses.map((ev) => (
-            <li key={ev.seq} className="print-block rounded-lg border border-slate-300 p-2">
+            <li key={ev.seq} className="print-block rounded-lg border border-line p-2">
               <p className="text-sm text-ink-500">{fmtDateTime(ev.at, lang)} · {ev.type}</p>
               <p className="text-base">{tt(ev.details?.note || ev.details?.question)}</p>
             </li>
@@ -114,7 +114,7 @@ export default function CaseSummary() {
       {decisions.length ? (
         <ul className="space-y-2">
           {decisions.map((ev) => (
-            <li key={ev.seq} className="print-block rounded-lg border border-slate-300 p-2">
+            <li key={ev.seq} className="print-block rounded-lg border border-line p-2">
               <p className="text-sm text-ink-500">{fmtDateTime(ev.at, lang)} · {ev.type}</p>
               {ev.details?.finding ? <p className="text-base font-semibold">{t(`finding.${ev.details.finding}`)}</p> : null}
               {ev.details?.reason ? <p className="text-base">{t('common.reason')}: {tt(ev.details.reason)}</p> : null}
