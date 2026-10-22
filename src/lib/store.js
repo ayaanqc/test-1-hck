@@ -5,6 +5,7 @@ import { OFFICES, chainFor } from '../data/authorities.js'
 import { makeEvent, verifyChain, sha256Hex } from './hash.js'
 import { putEvidence, getEvidence, clearEvidence, fileFingerprint } from './db.js'
 import { planEscalations, derive } from './engine.js'
+import { local, session } from './storage.js'
 
 const LS_KEY = 'jawabdehi.data.v1'
 const SESSION_KEY = 'jawabdehi.session.v1'
@@ -15,13 +16,22 @@ const DEFAULT_SETTINGS = { lang: 'en', textSize: 'md', contrast: false }
 const DEFAULT_ADMIN = { demoDate: null, audit: [], counter: 4822 }
 const DEFAULT_SESSION = { role: 'citizen' }
 
-let state = { ready: false, complaints: [], admin: DEFAULT_ADMIN, settings: DEFAULT_SETTINGS, session: readSession(), version: 0 }
+let state = {
+  ready: false,
+  initError: null,
+  storage: { local: local.available, session: session.available },
+  complaints: [],
+  admin: DEFAULT_ADMIN,
+  settings: DEFAULT_SETTINGS,
+  session: readSession(),
+  version: 0,
+}
 const listeners = new Set()
 let channel = null
 
 function readSession() {
   try {
-    const raw = sessionStorage.getItem(SESSION_KEY)
+    const raw = session.getItem(SESSION_KEY)
     if (raw) return { ...DEFAULT_SESSION, ...JSON.parse(raw) }
   } catch { /* ignore */ }
   return { ...DEFAULT_SESSION }
@@ -221,11 +231,7 @@ function persist({ broadcast = true } = {}) {
     admin: state.admin,
     settings: state.settings,
   }
-  try {
-    localStorage.setItem(LS_KEY, JSON.stringify(payload))
-  } catch (err) {
-    console.warn('Could not save to localStorage', err)
-  }
+  local.setItem(LS_KEY, JSON.stringify(payload))
   if (broadcast && channel) {
     try { channel.postMessage({ type: 'changed' }) } catch { /* ignore */ }
   }
@@ -238,7 +244,7 @@ function setLocal(patch) {
 }
 
 async function loadFromStorage() {
-  const raw = localStorage.getItem(LS_KEY)
+  const raw = local.getItem(LS_KEY)
   if (!raw) return null
   try {
     const data = JSON.parse(raw)
@@ -251,11 +257,38 @@ async function loadFromStorage() {
 
 let initPromise = null
 export function init() {
-  if (!initPromise) initPromise = start()
+  if (!initPromise) {
+    initPromise = Promise.race([
+      start().then(() => 'done'),
+      new Promise((resolve) => setTimeout(() => resolve('timeout'), 12000)),
+    ]).then((result) => {
+      if (result === 'timeout' && !state.ready) {
+        state = { ...state, ready: true, initError: 'timeout' }
+        emit()
+      }
+    })
+  }
   return initPromise
 }
 
+export function retryInit() {
+  initPromise = null
+  state = { ...state, ready: false, initError: null }
+  emit()
+  return init()
+}
+
 async function start() {
+  try {
+    await startInner()
+  } catch (err) {
+    console.error('Jawabdehi could not start', err)
+    state = { ...state, ready: true, initError: String((err && err.message) || err), storage: { local: local.available, session: session.available } }
+    emit()
+  }
+}
+
+async function startInner() {
   channel = typeof BroadcastChannel !== 'undefined' ? new BroadcastChannel('jawabdehi') : null
   if (channel) {
     channel.onmessage = async (msg) => {
@@ -270,9 +303,12 @@ async function start() {
   }
   window.addEventListener('storage', async (e) => {
     if (e.key === LS_KEY && e.newValue) {
-      const data = JSON.parse(e.newValue)
-      state = { ...state, complaints: data.complaints, admin: data.admin, settings: data.settings, ready: true }
-      emit()
+      try {
+        const data = JSON.parse(e.newValue)
+        if (!data || !Array.isArray(data.complaints)) return
+        state = { ...state, complaints: data.complaints, admin: data.admin, settings: data.settings, ready: true }
+        emit()
+      } catch { /* ignore malformed cross-tab payload */ }
     }
   })
 
@@ -280,12 +316,31 @@ async function start() {
   if (!data) {
     const complaints = await seed(new Date())
     data = { version: DATA_VERSION, complaints, admin: DEFAULT_ADMIN, settings: DEFAULT_SETTINGS }
-    localStorage.setItem(LS_KEY, JSON.stringify(data))
+    local.setItem(LS_KEY, JSON.stringify(data))
   }
-  state = { ...state, ready: true, complaints: data.complaints, admin: data.admin, settings: data.settings, session: readSession() }
+  state = {
+    ...state,
+    ready: true,
+    initError: null,
+    storage: { local: local.available, session: session.available },
+    complaints: data.complaints,
+    admin: data.admin,
+    settings: data.settings,
+    session: readSession(),
+  }
   emit()
   await reconcile(now())
   window.setInterval(() => { reconcile(now()).catch(() => {}) }, 30000)
+}
+
+// Handy for debugging in the browser console during the demo.
+if (typeof window !== 'undefined') {
+  window.__jawabdehi = {
+    get state() { return state },
+    init,
+    retryInit,
+    get storage() { return { local: local.available, session: session.available } },
+  }
 }
 
 export function now() {
@@ -654,18 +709,18 @@ export function setSetting(key, value) {
 
 export function setRole(role) {
   state = { ...state, session: { ...state.session, role } }
-  try { sessionStorage.setItem(SESSION_KEY, JSON.stringify(state.session)) } catch { /* ignore */ }
+  session.setItem(SESSION_KEY, JSON.stringify(state.session))
   emit()
 }
 
 export function setOfficialName(name) {
   state = { ...state, session: { ...state.session, officialName: name } }
-  try { sessionStorage.setItem(SESSION_KEY, JSON.stringify(state.session)) } catch { /* ignore */ }
+  session.setItem(SESSION_KEY, JSON.stringify(state.session))
   emit()
 }
 
 export async function resetDemo() {
-  localStorage.removeItem(LS_KEY)
+  local.removeItem(LS_KEY)
   await clearEvidence()
   const complaints = await seed(new Date())
   state = {

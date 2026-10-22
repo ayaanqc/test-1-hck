@@ -12,7 +12,7 @@ const SIZES = [
 
 export default function Settings() {
   const { t } = useI18n()
-  const { settings } = useStore()
+  const { settings, storage } = useStore()
   const [speaking, setSpeaking] = useState(false)
 
   useEffect(() => () => { if (typeof window !== 'undefined' && window.speechSynthesis) window.speechSynthesis.cancel() }, [])
@@ -79,8 +79,9 @@ export default function Settings() {
         </div>
       </Card>
 
-      <div className="mt-4">
+      <div className="mt-4 space-y-2">
         <Notice tone="info">{t('settings.demoNote')} {t('common.demoOnly')}</Notice>
+        {storage && storage.local === false ? <Notice tone="warn">{t('app.memoryMode')}</Notice> : null}
       </div>
     </Page>
   )

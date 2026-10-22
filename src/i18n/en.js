@@ -1,6 +1,10 @@
 export default {
   'app.name': 'Jawabdehi',
   'app.tagline': 'Complaints that keep moving',
+  'app.memoryMode': 'This preview blocks browser storage, so the demo keeps your changes in this tab only. It works, but a reload starts fresh.',
+  'app.initFailed': 'The demo could not start.',
+  'app.retry': 'Try again',
+  'app.slowStart': 'Still starting… this can take a moment on a slow connection.',
   'app.sample': 'Prototype. Every office, official, lawyer and complaint is made up.',
   'danger.line': 'If you are in danger right now, call 112',
   'danger.call': 'Call 112',

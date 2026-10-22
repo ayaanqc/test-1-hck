@@ -1,8 +1,8 @@
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { BrowserRouter, Routes, Route, useLocation, Link } from 'react-router-dom'
 import Layout from './components/Layout.jsx'
 import { useStore } from './lib/useStore.js'
-import { init } from './lib/store.js'
+import { init, retryInit } from './lib/store.js'
 import Home from './pages/Home.jsx'
 import Report from './pages/Report.jsx'
 import Submitted from './pages/Submitted.jsx'
@@ -49,8 +49,9 @@ function NotFound() {
 
 function Shell() {
   const store = useStore()
-  const { settings, ready } = store
+  const { settings, ready, initError } = store
   const { t } = useI18n()
+  const [slow, setSlow] = useState(false)
 
   useEffect(() => {
     document.documentElement.classList.toggle('hc', !!settings.contrast)
@@ -59,12 +60,52 @@ function Shell() {
 
   useEffect(() => {
     init().catch((err) => console.error('Could not start the demo', err))
+    const timer = setTimeout(() => setSlow(true), 6000)
+    return () => clearTimeout(timer)
   }, [])
 
   if (!ready) {
     return (
-      <div className="p-6">
+      <div className="mx-auto max-w-xl p-6">
         <p role="status" className="text-base font-semibold">{t('app.name')}…</p>
+        {slow ? (
+          <div className="mt-4">
+            <p className="text-base">{t('app.slowStart')}</p>
+            <button
+              type="button"
+              onClick={() => retryInit()}
+              className="mt-3 inline-flex min-h-[48px] items-center rounded-xl border-2 border-brand-700 px-4 py-2 text-base font-semibold text-brand-700"
+            >
+              {t('app.retry')}
+            </button>
+          </div>
+        ) : null}
+      </div>
+    )
+  }
+
+  if (initError) {
+    return (
+      <div className="mx-auto max-w-xl p-6">
+        <h1 className="text-xl font-bold">{t('app.initFailed')}</h1>
+        <p className="mt-2 text-base">{t('app.slowStart')}</p>
+        <p className="mt-2 break-all text-sm text-slate-700">{String(initError)}</p>
+        <div className="mt-4 flex flex-wrap gap-3">
+          <button
+            type="button"
+            onClick={() => retryInit()}
+            className="inline-flex min-h-[48px] items-center rounded-xl border-2 border-brand-700 bg-brand-700 px-4 py-2 text-base font-semibold text-white"
+          >
+            {t('app.retry')}
+          </button>
+          <button
+            type="button"
+            onClick={() => window.location.reload()}
+            className="inline-flex min-h-[48px] items-center rounded-xl border-2 border-slate-400 px-4 py-2 text-base font-semibold"
+          >
+            {t('app.retry')}
+          </button>
+        </div>
       </div>
     )
   }

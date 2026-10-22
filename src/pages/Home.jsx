@@ -8,7 +8,7 @@ import { getDept } from '../data/authorities.js'
 
 export default function Home() {
   const { t, tt, lang } = useI18n()
-  const { complaints } = useStore()
+  const { complaints, storage } = useStore()
   const recent = complaints.filter((c) => !c.archived && !derive(c).restriction).slice(0, 4)
 
   return (
@@ -20,10 +20,11 @@ export default function Home() {
         <BigAction icon="🏛" title={t('home.public')} sub={t('home.publicSub')} to="/record" />
       </div>
 
-      <div className="mt-4">
+      <div className="mt-4 space-y-2">
         <Notice tone="info">
           <span aria-hidden="true">ℹ️</span> {t('home.sampleNote')}
         </Notice>
+        {storage && storage.local === false ? <Notice tone="warn">{t('app.memoryMode')}</Notice> : null}
       </div>
 
       <SectionHeading>{t('home.latest')}</SectionHeading>
